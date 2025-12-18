@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Utilization LP Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --bg-color-lighter: #151b23;
+            --surface-color: #1c2128;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #8b949e;
+            --border-color: #30363d;
+            --accent-color: #58a6ff;
+            --hover-bg-color: #262c36;
+            --success-color: #3fb950;
+            --warning-color: #d29922;
+            --error-color: #f85149;
+            --wrapped-section-color: #d4a83c;
+            --wrapped-section-bg: rgba(212, 168, 60, 0.08);
+            --wrapped-section-border: rgba(212, 168, 60, 0.30);
+            --wrapped-section-header-bg: #1f1c14;
+            --wrapped-section-th-bg: #1a1813;
+            --btc-section-color: #cc7a15;
+            --btc-section-bg: rgba(204, 122, 21, 0.08);
+            --btc-section-border: rgba(204, 122, 21, 0.30);
+            --btc-section-header-bg: #1e1914;
+            --btc-section-th-bg: #191612;
+            --eth-section-color: #627eea;
+            --eth-section-bg: rgba(98, 126, 234, 0.08);
+            --eth-section-border: rgba(98, 126, 234, 0.30);
+            --eth-section-header-bg: #151720;
+            --eth-section-th-bg: #12141a;
+            --btceth-section-color: #b5651d;
+            --btceth-section-bg: rgba(181, 101, 29, 0.08);
+            --btceth-section-border: rgba(181, 101, 29, 0.30);
+            --btceth-section-header-bg: #1c1713;
+            --btceth-section-th-bg: #171411;
+            --stable-section-color: #2dd4bf;
+            --stable-section-bg: rgba(45, 212, 191, 0.08);
+            --stable-section-border: rgba(45, 212, 191, 0.30);
+            --stable-section-header-bg: #131d1b;
+            --stable-section-th-bg: #101917;
+            --link-color-btc: #e89a3c;
+            --link-color-eth: #8a9fee;
+            --link-color-btceth: #d4863a;
+            --link-color-wrapped: #e8c45a;
+            --link-color-stable: #5eead4;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-color-lighter);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-text-color);
+        }
+
+        header p {
+            margin: 0.4rem 0 0 0;
+            color: var(--secondary-text-color);
+            font-size: 0.9rem;
+        }
+
+        main {
+            padding: 1.25rem;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        footer {
+            padding: 0.75rem 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--secondary-text-color);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #refresh-btn {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        #refresh-btn:hover {
+            background-color: #4393e6;
+            transform: translateY(-1px);
+        }
+
+        #refresh-btn:disabled {
+            background-color: var(--secondary-text-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #last-updated {
+            color: var(--secondary-text-color);
+            font-size: 0.8rem;
+        }
+
+        #status-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding: 0.6rem 1rem;
+            background-color: var(--surface-color);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-color);
+            font-size: 0.85rem;
+        }
+
+        #status-bar.success {
+            border-left-color: var(--success-color);
+        }
+
+        #status-bar.error {
+            border-left-color: var(--error-color);
+        }
+
+        #status-bar.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        #status-bar.info {
+            border-left-color: var(--accent-color);
+        }
+
+        #status-message {
+            flex-grow: 1;
+        }
+
+        #loading-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1.25rem;
+            height: calc(100vh - 280px);
+            min-height: 500px;
+        }
+
+        #stablecoin-section-wrapper {
+            margin-top: 1.25rem;
+        }
+
+        .pair-section {
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .pair-section.full-width {
+            max-height: 350px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            transition: filter 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .section-header:hover {
+            filter: brightness(1.15);
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .collapse-icon {
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .pair-section.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .pair-section.collapsed .section-content {
+            display: none;
+        }
+
+        .pool-count {
+            font-size: 0.9rem;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        .section-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* BTC/Stable Section */
+        #btc-stable-section {
+            background-color: var(--btc-section-bg);
+            border: 1px solid var(--btc-section-border);
+        }
+
+        #btc-stable-section .section-header {
+            background-color: var(--btc-section-header-bg);
+            border-bottom: 1px solid var(--btc-section-border);
+        }
+
+        #btc-stable-section .section-header h2 {
+            color: var(--btc-section-color);
+        }
+
+        #btc-stable-section .pool-table th {
+            background-color: var(--btc-section-th-bg);
+        }
+
+        #btc-stable-section .pool-link,
+        #btc-stable-section .chain-link,
+        #btc-stable-section .protocol-link {
+            color: var(--link-color-btc);
+        }
+
+        /* ETH/Stable Section */
+        #eth-stable-section {
+            background-color: var(--eth-section-bg);
+            border: 1px solid var(--eth-section-border);
+        }
+
+        #eth-stable-section .section-header {
+            background-color: var(--eth-section-header-bg);
+            border-bottom: 1px solid var(--eth-section-border);
+        }
+
+        #eth-stable-section .section-header h2 {
+            color: var(--eth-section-color);
+        }
+
+        #eth-stable-section .pool-table th {
+            background-color: var(--eth-section-th-bg);
+        }
+
+        #eth-stable-section .pool-link,
+        #eth-stable-section .chain-link,
+        #eth-stable-section .protocol-link {
+            color: var(--link-color-eth);
+        }
+
+        /* BTC/ETH Section */
+        #btc-eth-section {
+            background-color: var(--btceth-section-bg);
+            border: 1px solid var(--btceth-section-border);
+        }
+
+        #btc-eth-section .section-header {
+            background-color: var(--btceth-section-header-bg);
+            border-bottom: 1px solid var(--btceth-section-border);
+        }
+
+        #btc-eth-section .section-header h2 {
+            color: var(--btceth-section-color);
+        }
+
+        #btc-eth-section .pool-table th {
+            background-color: var(--btceth-section-th-bg);
+        }
+
+        #btc-eth-section .pool-link,
+        #btc-eth-section .chain-link,
+        #btc-eth-section .protocol-link {
+            color: var(--link-color-btceth);
+        }
+
+        /* Wrapped Twins Section (Yellow) */
+        #wrapped-section {
+            background-color: var(--wrapped-section-bg);
+            border: 1px solid var(--wrapped-section-border);
+        }
+
+        #wrapped-section .section-header {
+            background-color: var(--wrapped-section-header-bg);
+            border-bottom: 1px solid var(--wrapped-section-border);
+        }
+
+        #wrapped-section .section-header h2 {
+            color: var(--wrapped-section-color);
+        }
+
+        #wrapped-section .pool-table th {
+            background-color: var(--wrapped-section-th-bg);
+        }
+
+        #wrapped-section .pool-link,
+        #wrapped-section .chain-link,
+        #wrapped-section .protocol-link {
+            color: var(--link-color-wrapped);
+        }
+
+        /* Stablecoin Pairs Section (Teal) */
+        #stable-stable-section {
+            background-color: var(--stable-section-bg);
+            border: 1px solid var(--stable-section-border);
+        }
+
+        #stable-stable-section .section-header {
+            background-color: var(--stable-section-header-bg);
+            border-bottom: 1px solid var(--stable-section-border);
+        }
+
+        #stable-stable-section .section-header h2 {
+            color: var(--stable-section-color);
+        }
+
+        #stable-stable-section .pool-table th {
+            background-color: var(--stable-section-th-bg);
+        }
+
+        #stable-stable-section .pool-link,
+        #stable-stable-section .chain-link,
+        #stable-stable-section .protocol-link {
+            color: var(--link-color-stable);
+        }
+
+        .pool-table-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: auto;
+            min-height: 0;
+        }
+
+        .pool-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .pool-table th,
+        .pool-table td {
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .pool-table th {
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--secondary-text-color);
+        }
+
+        .pool-table th:hover {
+            color: var(--primary-text-color);
+        }
+
+        .pool-table th[data-sort]::after {
+            content: ' ⇅';
+            opacity: 0.4;
+            font-size: 0.7em;
+        }
+
+        .pool-table th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        .pool-table th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        .pool-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .pool-table tbody tr:hover {
+            background-color: var(--hover-bg-color);
+        }
+
+        .pool-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pool-link, .chain-link, .protocol-link {
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.15s ease;
+        }
+
+        .pool-link:hover, .chain-link:hover, .protocol-link:hover {
+            text-decoration: underline;
+            opacity: 0.85;
+        }
+
+        .protocol-badge {
+            display: inline-block;
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background-color: rgba(88, 166, 255, 0.15);
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fee-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--secondary-text-color);
+        }
+
+        .fee-badge.fee-low {
+            background-color: rgba(63, 185, 80, 0.2);
+            color: var(--success-color);
+        }
+
+        .fee-badge.fee-medium {
+            background-color: rgba(210, 153, 34, 0.2);
+            color: var(--warning-color);
+        }
+
+        .fee-badge.fee-high {
+            background-color: rgba(248, 81, 73, 0.2);
+            color: var(--error-color);
+        }
+
+        .liquidity-cell {
+            position: relative;
+            font-weight: 500;
+        }
+
+        .liquidity-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            opacity: 0.18;
+            border-radius: 2px;
+            z-index: 0;
+        }
+
+        .liquidity-value {
+            position: relative;
+            z-index: 1;
+        }
+
+        .liquidity-low { color: #f85149; }
+        .liquidity-mid-low { color: #db6d28; }
+        .liquidity-mid { color: #a371f7; }
+        .liquidity-mid-high { color: #79c0ff; }
+        .liquidity-high { color: #58a6ff; }
+
+        .apr-value {
+            font-weight: 600;
+        }
+
+        .apr-excellent { color: var(--success-color); }
+        .apr-good { color: #a371f7; }
+        .apr-moderate { color: var(--warning-color); }
+        .apr-low { color: var(--secondary-text-color); }
+
+        .apr-source {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            margin-left: 0.25rem;
+        }
+
+        .utilization-value {
+            font-weight: 600;
+        }
+
+        .utilization-excellent { color: var(--success-color); }
+        .utilization-high { color: #a371f7; }
+        .utilization-moderate { color: var(--warning-color); }
+        .utilization-low { color: var(--secondary-text-color); }
+
+        .no-data-message {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--secondary-text-color);
+            font-size: 0.9rem;
+        }
+
+        .pool-table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .pool-table-container::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 4px;
+        }
+
+        .pool-table-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .pool-table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-text-color);
+        }
+
+        /* Debug section */
+        #debug-section {
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .debug-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .debug-toggle {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--secondary-text-color);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .debug-toggle:hover {
+            background-color: var(--hover-bg-color);
+            color: var(--primary-text-color);
+        }
+
+        .debug-label {
+            font-size: 0.75rem;
+            color: var(--secondary-text-color);
+        }
+
+        .debug-info {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+
+        .debug-info .debug-error { color: var(--error-color); }
+        .debug-info .debug-warn { color: var(--warning-color); }
+        .debug-info .debug-success { color: var(--success-color); }
+        .debug-info .debug-info { color: var(--accent-color); }
+
+        @media (max-width: 900px) {
+            #dashboard-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                height: auto;
+                min-height: auto;
+            }
+
+            .pair-section {
+                min-height: 300px;
+                max-height: 400px;
+            }
+
+            .pair-section.full-width {
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.3rem;
+            }
+
+            header p {
+                font-size: 0.8rem;
+            }
+
+            main {
+                padding: 0.75rem;
+            }
+
+            #controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls-left {
+                justify-content: space-between;
+            }
+
+            #refresh-btn {
+                text-align: center;
+            }
+
+            .pair-section {
+                min-height: 250px;
+                max-height: 350px;
+            }
+
+            .section-header h2 {
+                font-size: 1rem;
+            }
+
+            .pool-table th,
+            .pool-table td {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.78rem;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .pool-table {
+                font-size: 0.9rem;
+            }
+
+            .pool-table th,
+            .pool-table td {
+                padding: 0.7rem 0.9rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>High Utilization LP Dashboard</h1>
+        <p>A discovery tool for active BTC / ETH pools. Ranks pools by Utilization % (24h Volume ÷ Total Liquidity × 100).</p>
+    </header>
+
+    <main>
+        <div id="controls">
+            <div class="controls-left">
+                <button id="refresh-btn">Refresh Data</button>
+                <span id="last-updated">Loading...</span>
+            </div>
+        </div>
+
+        <div id="status-bar">
+            <span id="status-message">Initializing...</span>
+            <div id="loading-spinner" class="hidden"></div>
+        </div>
+
+        <section id="dashboard-content">
+            <!-- 2x2 Grid for main categories -->
+            <div id="dashboard-grid">
+                <div class="pair-section" id="btc-stable-section">
+                    <div class="section-header" data-section="btc-stable">
+                        <h2>
+                            <span class="collapse-icon">▼</span>
+                            BTC / Stablecoin
+                            <span class="pool-count" id="btc-stable-count">(0)</span>
+                        </h2>
+                    </div>
+                    <div class="section-content" id="btc-stable-content">
+                        <div class="pool-table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="chain" data-section="btc-stable">Chain</th>
+                                        <th data-sort="protocol" data-section="btc-stable">Protocol</th>
+                                        <th data-sort="name" data-section="btc-stable">Pool</th>
+                                        <th data-sort="feeTier" data-section="btc-stable">Fee</th>
+                                        <th data-sort="liquidityUsd" data-section="btc-stable">Liquidity</th>
+                                        <th data-sort="volumeUsd24h" data-section="btc-stable">Volume 24h</th>
+                                        <th data-sort="score" data-section="btc-stable">Utilization %</th>
+                                        <th data-sort="apr" data-section="btc-stable">Est. APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="btc-stable-table-body"></tbody>
+                            </table>
+                            <div class="no-data-message hidden" id="btc-stable-no-data">
+                                No BTC/Stablecoin pools found.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pair-section" id="eth-stable-section">
+                    <div class="section-header" data-section="eth-stable">
+                        <h2>
+                            <span class="collapse-icon">▼</span>
+                            ETH / Stablecoin
+                            <span class="pool-count" id="eth-stable-count">(0)</span>
+                        </h2>
+                    </div>
+                    <div class="section-content" id="eth-stable-content">
+                        <div class="pool-table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="chain" data-section="eth-stable">Chain</th>
+                                        <th data-sort="protocol" data-section="eth-stable">Protocol</th>
+                                        <th data-sort="name" data-section="eth-stable">Pool</th>
+                                        <th data-sort="feeTier" data-section="eth-stable">Fee</th>
+                                        <th data-sort="liquidityUsd" data-section="eth-stable">Liquidity</th>
+                                        <th data-sort="volumeUsd24h" data-section="eth-stable">Volume 24h</th>
+                                        <th data-sort="score" data-section="eth-stable">Utilization %</th>
+                                        <th data-sort="apr" data-section="eth-stable">Est. APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eth-stable-table-body"></tbody>
+                            </table>
+                            <div class="no-data-message hidden" id="eth-stable-no-data">
+                                No ETH/Stablecoin pools found.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pair-section" id="btc-eth-section">
+                    <div class="section-header" data-section="btc-eth">
+                        <h2>
+                            <span class="collapse-icon">▼</span>
+                            BTC / ETH
+                            <span class="pool-count" id="btc-eth-count">(0)</span>
+                        </h2>
+                    </div>
+                    <div class="section-content" id="btc-eth-content">
+                        <div class="pool-table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="chain" data-section="btc-eth">Chain</th>
+                                        <th data-sort="protocol" data-section="btc-eth">Protocol</th>
+                                        <th data-sort="name" data-section="btc-eth">Pool</th>
+                                        <th data-sort="feeTier" data-section="btc-eth">Fee</th>
+                                        <th data-sort="liquidityUsd" data-section="btc-eth">Liquidity</th>
+                                        <th data-sort="volumeUsd24h" data-section="btc-eth">Volume 24h</th>
+                                        <th data-sort="score" data-section="btc-eth">Utilization %</th>
+                                        <th data-sort="apr" data-section="btc-eth">Est. APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="btc-eth-table-body"></tbody>
+                            </table>
+                            <div class="no-data-message hidden" id="btc-eth-no-data">
+                                No BTC/ETH pools found.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pair-section" id="wrapped-section">
+                    <div class="section-header" data-section="wrapped">
+                        <h2>
+                            <span class="collapse-icon">▼</span>
+                            Wrapped Twins
+                            <span class="pool-count" id="wrapped-count">(0)</span>
+                        </h2>
+                    </div>
+                    <div class="section-content" id="wrapped-content">
+                        <div class="pool-table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="chain" data-section="wrapped">Chain</th>
+                                        <th data-sort="protocol" data-section="wrapped">Protocol</th>
+                                        <th data-sort="name" data-section="wrapped">Pool</th>
+                                        <th data-sort="feeTier" data-section="wrapped">Fee</th>
+                                        <th data-sort="liquidityUsd" data-section="wrapped">Liquidity</th>
+                                        <th data-sort="volumeUsd24h" data-section="wrapped">Volume 24h</th>
+                                        <th data-sort="score" data-section="wrapped">Utilization %</th>
+                                        <th data-sort="apr" data-section="wrapped">Est. APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wrapped-table-body"></tbody>
+                            </table>
+                            <div class="no-data-message hidden" id="wrapped-no-data">
+                                No wrapped twin pools found.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-width Stablecoin Pairs Section -->
+            <div id="stablecoin-section-wrapper">
+                <div class="pair-section full-width" id="stable-stable-section">
+                    <div class="section-header" data-section="stable-stable">
+                        <h2>
+                            <span class="collapse-icon">▼</span>
+                            Stablecoin Pairs
+                            <span class="pool-count" id="stable-stable-count">(0)</span>
+                            <span style="font-size: 0.75rem; font-weight: 400; opacity: 0.6; margin-left: 0.5rem;">USDC · USDT · GHO · DAI · USDbC</span>
+                        </h2>
+                    </div>
+                    <div class="section-content" id="stable-stable-content">
+                        <div class="pool-table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="chain" data-section="stable-stable">Chain</th>
+                                        <th data-sort="protocol" data-section="stable-stable">Protocol</th>
+                                        <th data-sort="name" data-section="stable-stable">Pool</th>
+                                        <th data-sort="feeTier" data-section="stable-stable">Fee</th>
+                                        <th data-sort="liquidityUsd" data-section="stable-stable">Liquidity</th>
+                                        <th data-sort="volumeUsd24h" data-section="stable-stable">Volume 24h</th>
+                                        <th data-sort="score" data-section="stable-stable">Utilization %</th>
+                                        <th data-sort="apr" data-section="stable-stable">Est. APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stable-stable-table-body"></tbody>
+                            </table>
+                            <div class="no-data-message hidden" id="stable-stable-no-data">
+                                No stablecoin pair pools found.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Debug section moved to bottom -->
+        <div id="debug-section" class="hidden">
+            <div class="debug-header">
+                <span class="debug-label">Debug Log</span>
+                <button id="clear-debug" class="debug-toggle">Clear</button>
+            </div>
+            <div id="debug-info" class="debug-info"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>
+            Data sourced from DeFiLlama API. APR estimates are based on 24h volume and fees, actual returns may vary. Always DYOR.
+            <button id="debug-toggle" class="debug-toggle" style="margin-left: 1rem;">Toggle Debug</button>
+        </p>
+    </footer>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            // Asset class definitions
+            ASSET_CLASSES: {
+                BTC: [
+                    "btc", "wbtc", "cbbtc", "tbtc", "renbtc", "sbtc", "hbtc", "obtc", "pbtc",
+                    "ibtc", "fbtc", "lbtc", "kbtc", "ebtc", "btcb", "solvbtc", "uniBTC",
+                    "pumpbtc", "dlcbtc", "stbtc", "mbtc", "xbtc", "abtc"
+                ],
+                ETH: [
+                    "eth", "weth", "steth", "wsteth", "reth", "cbeth", "seth", "meth", "oeth",
+                    "frxeth", "sfrxeth", "sweth", "ankreth", "eeth", "weeth", "ezeth", "rseth",
+                    "pxeth", "uniETH", "ETHx", "insteth", "neth", "oseth", "mpeth", "ineth",
+                    "wbeth", "rsweth", "saeth", "apxeth"
+                ],
+                STABLE: [
+                    "usdc", "usdt", "dai", "usdbc", "frax", "lusd", "usds", "crvusd", "tusd",
+                    "busd", "gusd", "usdp", "usdd", "pyusd", "eusd", "gho", "mkusd", "dola",
+                    "susd", "usd+", "usdb", "usdm", "usde", "usd0", "fdusd", "eur", "eurt",
+                    "eurc", "ageur", "ceur", "usdk", "usdn", "mimatic", "mai", "alusd", "mim",
+                    "susdv2", "susde"
+                ]
+            },
+
+            // Specific stablecoins for the stable-stable section
+            STABLE_PAIR_TOKENS: ["usdc", "usdt", "gho", "dai", "usdbc"],
+
+            // Minimum thresholds
+            MIN_LIQUIDITY: 50000,
+            MIN_VOLUME_24H: 1000,
+
+            // Default fee
+            DEFAULT_FEE_PERCENT: 0.3,
+
+            // API configuration
+            API_TIMEOUT_MS: 30000,
+
+            // Chain name normalization map
+            CHAIN_DISPLAY_NAMES: {
+                "ethereum": "Ethereum",
+                "arbitrum": "Arbitrum",
+                "optimism": "Optimism",
+                "base": "Base",
+                "polygon": "Polygon",
+                "polygon_zkevm": "Polygon zkEVM",
+                "zksync era": "zkSync",
+                "linea": "Linea",
+                "scroll": "Scroll",
+                "blast": "Blast",
+                "bsc": "BSC",
+                "avax": "Avalanche",
+                "fantom": "Fantom",
+                "gnosis": "Gnosis",
+                "celo": "Celo",
+                "moonbeam": "Moonbeam",
+                "metis": "Metis",
+                "manta": "Manta",
+                "mode": "Mode",
+                "mantle": "Mantle",
+                "sei": "Sei",
+                "kava": "Kava",
+                "fraxtal": "Fraxtal",
+                "bob": "BOB",
+                "taiko": "Taiko",
+                "zircuit": "Zircuit",
+                "world-chain": "World Chain",
+                "sonic": "Sonic",
+                "ink": "Ink",
+                "swell": "Swell",
+                "corn": "Corn",
+                "unichain": "Unichain"
+            },
+
+            // DexScreener chain mapping
+            DEXSCREENER_CHAINS: {
+                "ethereum": "ethereum",
+                "arbitrum": "arbitrum",
+                "optimism": "optimism",
+                "base": "base",
+                "polygon": "polygon",
+                "polygon_zkevm": "polygonzkevm",
+                "zksync era": "zksync",
+                "linea": "linea",
+                "scroll": "scroll",
+                "blast": "blast",
+                "bsc": "bsc",
+                "avax": "avalanche",
+                "fantom": "fantom",
+                "gnosis": "gnosis",
+                "celo": "celo",
+                "moonbeam": "moonbeam",
+                "metis": "metis",
+                "manta": "manta",
+                "mode": "mode",
+                "mantle": "mantle",
+                "sei": "sei",
+                "kava": "kava",
+                "fraxtal": "fraxtal",
+                "bob": "bob",
+                "taiko": "taiko",
+                "zircuit": "zircuit",
+                "sonic": "sonic",
+                "swell": "swell",
+                "corn": "corn",
+                "unichain": "unichain"
+            },
+
+            // DeFiLlama chain URL mapping
+            DEFILLAMA_CHAINS: {
+                "ethereum": "Ethereum",
+                "arbitrum": "Arbitrum",
+                "optimism": "Optimism",
+                "base": "Base",
+                "polygon": "Polygon",
+                "polygon_zkevm": "Polygon%20zkEVM",
+                "zksync era": "zkSync%20Era",
+                "linea": "Linea",
+                "scroll": "Scroll",
+                "blast": "Blast",
+                "bsc": "BSC",
+                "avax": "Avalanche",
+                "fantom": "Fantom",
+                "gnosis": "Gnosis",
+                "celo": "Celo",
+                "moonbeam": "Moonbeam",
+                "metis": "Metis",
+                "manta": "Manta",
+                "mode": "Mode",
+                "mantle": "Mantle",
+                "sei": "Sei",
+                "kava": "Kava",
+                "fraxtal": "Fraxtal",
+                "bob": "BOB",
+                "taiko": "Taiko",
+                "zircuit": "Zircuit",
+                "sonic": "Sonic",
+                "swell": "Swell",
+                "corn": "Corn",
+                "unichain": "Unichain"
+            }
+        };
+
+        // Build lookup sets for faster matching
+        const ASSET_LOOKUP = {};
+        for (const [assetClass, tokens] of Object.entries(CONFIG.ASSET_CLASSES)) {
+            for (const token of tokens) {
+                ASSET_LOOKUP[token.toLowerCase()] = assetClass;
+            }
+        }
+
+        // Build stable pair token set for quick lookup
+        const STABLE_PAIR_SET = new Set(CONFIG.STABLE_PAIR_TOKENS.map(t => t.toLowerCase()));
+
+        // ============================================
+        // DEBUG LOGGING
+        // ============================================
+        let debugLogs = [];
+
+        function logMessage(msg, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = { timestamp, type, msg };
+            debugLogs.push(logEntry);
+            if (debugLogs.length > 500) {
+                debugLogs = debugLogs.slice(-500);
+            }
+            console.log(`[${timestamp}] [${type.toUpperCase()}] ${msg}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('debug-info');
+            if (!debugDiv) return;
+            debugDiv.innerHTML = debugLogs.map(log =>
+                `<div class="debug-${log.type}">[${log.timestamp}] ${log.msg}</div>`
+            ).join('');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        // Debug toggle handler
+        document.getElementById('debug-toggle').addEventListener('click', () => {
+            const debugSection = document.getElementById('debug-section');
+            debugSection.classList.toggle('hidden');
+        });
+
+        document.getElementById('clear-debug').addEventListener('click', () => {
+            debugLogs = [];
+            updateDebugDisplay();
+        });
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        async function fetchWithTimeout(url, timeout = CONFIG.API_TIMEOUT_MS) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            try {
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error(`Request timeout after ${timeout}ms`);
+                }
+                throw error;
+            }
+        }
+
+        function slugifyProtocol(protocol) {
+            return protocol
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^^a-z0-9-]/g, '')
+                .replace(/-+/g, '-')
+                .replace(/^^-|-$/g, '');
+        }
+
+        // ============================================
+        // DEFI LLAMA API
+        // ============================================
+        async function fetchDeFiLlamaPools() {
+            updateStatus('Fetching pool data from DeFiLlama...', 'info', true);
+            const url = 'https://yields.llama.fi/pools';
+            logMessage(`Fetching from: ${url}`, 'info');
+
+            try {
+                const data = await fetchWithTimeout(url);
+                if (!data || !data.data || !Array.isArray(data.data)) {
+                    throw new Error('Invalid response structure from DeFiLlama');
+                }
+                logMessage(`Fetched ${data.data.length} total pools from DeFiLlama`, 'success');
+                return data.data;
+            } catch (error) {
+                logMessage(`Failed to fetch pools: ${error.message}`, 'error');
+                return [];
+            }
+        }
+
+        // ============================================
+        // TOKEN & ASSET RESOLUTION
+        // ============================================
+        function normalizeTokenSymbol(symbol) {
+            if (!symbol) return null;
+            let normalized = symbol.toLowerCase().trim();
+            return normalized;
+        }
+
+        function resolveAssetClass(tokenSymbol) {
+            if (!tokenSymbol) return null;
+            const normalized = normalizeTokenSymbol(tokenSymbol);
+
+            // Direct lookup first
+            if (ASSET_LOOKUP[normalized]) {
+                return ASSET_LOOKUP[normalized];
+            }
+
+            // Try partial matching
+            for (const [token, assetClass] of Object.entries(ASSET_LOOKUP)) {
+                if (token.length >= 3 && normalized.includes(token)) {
+                    return assetClass;
+                }
+                if (normalized === token) {
+                    return assetClass;
+                }
+            }
+
+            return null;
+        }
+
+        function isStablePairToken(tokenSymbol) {
+            if (!tokenSymbol) return false;
+            const normalized = normalizeTokenSymbol(tokenSymbol);
+            return STABLE_PAIR_SET.has(normalized);
+        }
+
+        function determinePairType(baseAsset, quoteAsset, baseSymbol, quoteSymbol) {
+            if (!baseAsset || !quoteAsset) return null;
+
+            // Check for stable-stable pair first (specific tokens only)
+            const baseIsStablePair = isStablePairToken(baseSymbol);
+            const quoteIsStablePair = isStablePairToken(quoteSymbol);
+
+            if (baseIsStablePair && quoteIsStablePair) {
+                // Make sure they're different tokens
+                const normalizedBase = normalizeTokenSymbol(baseSymbol);
+                const normalizedQuote = normalizeTokenSymbol(quoteSymbol);
+                if (normalizedBase !== normalizedQuote) {
+                    return 'stable-stable';
+                }
+            }
+
+            // Same asset class = wrapped/LST pair
+            if (baseAsset === quoteAsset) {
+                if (baseAsset === 'BTC' || baseAsset === 'ETH') {
+                    return 'wrapped';
+                }
+                return null;
+            }
+
+            // Sort to normalize pair direction
+            const sorted = [baseAsset, quoteAsset].sort().join('-');
+            switch (sorted) {
+                case 'BTC-STABLE': return 'btc-stable';
+                case 'ETH-STABLE': return 'eth-stable';
+                case 'BTC-ETH': return 'btc-eth';
+                default: return null;
+            }
+        }
+
+        // ============================================
+        // SYMBOL PARSING
+        // ============================================
+        function parsePoolSymbol(symbol) {
+            if (!symbol || typeof symbol !== 'string') return null;
+
+            let cleanSymbol = symbol
+                .replace(/[\s-]*\d+\.?\d*%?\s*$/i, '')
+                .replace(/[\s-]*\d+bps\s*$/i, '')
+                .trim();
+
+            const separators = ['-', '/', '_', ' '];
+            for (const sep of separators) {
+                const parts = cleanSymbol.split(sep).filter(p => p.length > 0);
+                if (parts.length === 2) {
+                    return {
+                        baseSymbol: parts[0].trim(),
+                        quoteSymbol: parts[1].trim()
+                    };
+                }
+                if (parts.length === 3) {
+                    if (/^^\d+\.?\d*%?$/.test(parts[1]) || /^^\d+bps$/i.test(parts[1])) {
+                        return {
+                            baseSymbol: parts[0].trim(),
+                            quoteSymbol: parts[2].trim()
+                        };
+                    }
+                    return {
+                        baseSymbol: parts[0].trim(),
+                        quoteSymbol: parts[1].trim()
+                    };
+                }
+            }
+            return null;
+        }
+
+        // ============================================
+        // FEE EXTRACTION
+        // ============================================
+        function extractFeeFromPool(pool) {
+            if (pool.poolMeta) {
+                const metaFee = parseFloat(pool.poolMeta);
+                if (!isNaN(metaFee) && metaFee > 0 && metaFee < 10) {
+                    return metaFee;
+                }
+            }
+
+            const symbol = pool.symbol || '';
+            const percentMatch = symbol.match(/(\d+\.?\d*)\s*%/);
+            if (percentMatch) {
+                const fee = parseFloat(percentMatch[1]);
+                if (fee > 0 && fee < 10) return fee;
+            }
+
+            const bpsMatch = symbol.match(/(\d+)\s*bps/i);
+            if (bpsMatch) {
+                return parseFloat(bpsMatch[1]) / 100;
+            }
+
+            const tierMatch = symbol.match(/[\s-](0\.01|0\.04|0\.05|0\.1|0\.25|0\.3|0\.30|1\.0|1)[\s-]?$/);
+            if (tierMatch) {
+                return parseFloat(tierMatch[1]);
+            }
+
+            const protocol = (pool.project || '').toLowerCase();
+            if (protocol.includes('curve') || protocol.includes('balancer')) {
+                return 0.04;
+            }
+
+            return null;
+        }
+
+        // ============================================
+        // APR CALCULATION
+        // ============================================
+        function calculatePoolApr(pool, normalizedPool) {
+            if (pool.apyBase !== undefined && pool.apyBase !== null && pool.apyBase > 0) {
+                return { apr: pool.apyBase, source: 'api' };
+            }
+
+            const volume = normalizedPool.volumeUsd24h;
+            const liquidity = normalizedPool.liquidityUsd;
+            const fee = normalizedPool.feeTier || CONFIG.DEFAULT_FEE_PERCENT;
+
+            if (volume > 0 && liquidity > 0) {
+                const dailyFeeRevenue = volume * (fee / 100);
+                const apr = (dailyFeeRevenue * 365 / liquidity) * 100;
+                return { apr: apr, source: 'calc' };
+            }
+
+            if (pool.apy !== undefined && pool.apy !== null && pool.apy > 0) {
+                return { apr: pool.apy, source: 'total' };
+            }
+
+            return { apr: 0, source: 'none' };
+        }
+
+        // ============================================
+        // POOL NORMALIZATION
+        // ============================================
+        function normalizePool(pool) {
+            const symbol = pool.symbol || '';
+            const chain = (pool.chain || '').toLowerCase();
+            const tvlUsd = parseFloat(pool.tvlUsd) || 0;
+            const volumeUsd1d = parseFloat(pool.volumeUsd1d) || 0;
+            const protocol = pool.project || 'Unknown';
+
+            const parsed = parsePoolSymbol(symbol);
+            if (!parsed) return null;
+
+            const { baseSymbol, quoteSymbol } = parsed;
+            const baseAsset = resolveAssetClass(baseSymbol);
+            const quoteAsset = resolveAssetClass(quoteSymbol);
+
+            if (!baseAsset && !quoteAsset) return null;
+
+            const pairType = determinePairType(baseAsset, quoteAsset, baseSymbol, quoteSymbol);
+            if (!pairType) return null;
+
+            const feeTier = extractFeeFromPool(pool) || CONFIG.DEFAULT_FEE_PERCENT;
+            const chainDisplay = CONFIG.CHAIN_DISPLAY_NAMES[chain] ||
+                chain.charAt(0).toUpperCase() + chain.slice(1);
+
+            // Build DexScreener URL
+            const dexScreenerChain = CONFIG.DEXSCREENER_CHAINS[chain] || chain;
+            const poolAddress = pool.pool || '';
+            let dexScreenerUrl = '';
+            if (poolAddress && dexScreenerChain) {
+                // Extract just the address part if pool ID contains chain prefix
+                const addressPart = poolAddress.includes('-') ?
+                    poolAddress.split('-').pop() : poolAddress;
+                dexScreenerUrl = `https://dexscreener.com/${dexScreenerChain}/${addressPart}`;
+            }
+
+            // Build DeFiLlama chain URL
+            const defiLlamaChain = CONFIG.DEFILLAMA_CHAINS[chain] || chainDisplay;
+            const chainUrl = `https://defillama.com/chain/${defiLlamaChain}`;
+
+            // Build DeFiLlama protocol URL
+            const protocolSlug = slugifyProtocol(protocol);
+            const protocolUrl = `https://defillama.com/protocol/${protocolSlug}`;
+
+            const normalizedPool = {
+                id: pool.pool || `${protocol}-${symbol}-${chain}`,
+                name: symbol,
+                baseSymbol,
+                quoteSymbol,
+                baseAsset,
+                quoteAsset,
+                pairType,
+                liquidityUsd: tvlUsd,
+                volumeUsd24h: volumeUsd1d,
+                feeTier,
+                chain: chainDisplay,
+                chainRaw: chain,
+                chainUrl,
+                protocol,
+                protocolUrl,
+                poolUrl: dexScreenerUrl,
+                score: 0,
+                apr: 0,
+                aprSource: 'none',
+                rawPool: pool
+            };
+
+            const aprResult = calculatePoolApr(pool, normalizedPool);
+            normalizedPool.apr = aprResult.apr;
+            normalizedPool.aprSource = aprResult.source;
+
+            return normalizedPool;
+        }
+
+        function normalizeAllPools(rawPools) {
+            const normalized = [];
+            const seen = new Set();
+            let stats = {
+                total: rawPools.length,
+                parsed: 0,
+                assetMatched: 0,
+                pairMatched: 0,
+                duplicates: 0
+            };
+
+            for (const pool of rawPools) {
+                try {
+                    const norm = normalizePool(pool);
+                    if (norm) {
+                        stats.pairMatched++;
+                        if (!seen.has(norm.id)) {
+                            seen.add(norm.id);
+                            normalized.push(norm);
+                        } else {
+                            stats.duplicates++;
+                        }
+                    }
+                } catch (err) {
+                    // Silent fail for individual pools
+                }
+            }
+
+            logMessage(`Normalization stats:`, 'info');
+            logMessage(`  Total pools: ${stats.total}`, 'info');
+            logMessage(`  Matched pairs: ${stats.pairMatched}`, 'info');
+            logMessage(`  Duplicates removed: ${stats.duplicates}`, 'info');
+            logMessage(`  Final count: ${normalized.length}`, 'success');
+
+            return normalized;
+        }
+
+        // ============================================
+        // FILTERING & SCORING
+        // ============================================
+        function validatePool(pool) {
+            if (!pool.id || !pool.name) return false;
+            if (pool.liquidityUsd < CONFIG.MIN_LIQUIDITY) return false;
+            if (pool.volumeUsd24h < CONFIG.MIN_VOLUME_24H) return false;
+            return true;
+        }
+
+        function filterPools(pools) {
+            const filtered = pools.filter(validatePool);
+            const removed = pools.length - filtered.length;
+            logMessage(`Filtered ${removed} pools below thresholds (TVL < $${CONFIG.MIN_LIQUIDITY.toLocaleString()} or Vol < $${CONFIG.MIN_VOLUME_24H.toLocaleString()})`, 'info');
+            logMessage(`Remaining pools: ${filtered.length}`, 'success');
+            return filtered;
+        }
+
+        function scoreAndRankPools(pools) {
+            return pools.map(pool => {
+                // Score is the raw ratio (volume/liquidity), will be displayed as percentage
+                const score = pool.liquidityUsd > 0 ?
+                    pool.volumeUsd24h / pool.liquidityUsd : 0;
+                return { ...pool, score };
+            }).sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return b.liquidityUsd - a.liquidityUsd;
+            });
+        }
+
+        function categorizePools(pools) {
+            const categories = {
+                'btc-stable': [],
+                'eth-stable': [],
+                'btc-eth': [],
+                'wrapped': [],
+                'stable-stable': []
+            };
+
+            for (const pool of pools) {
+                if (categories[pool.pairType]) {
+                    categories[pool.pairType].push(pool);
+                }
+            }
+
+            for (const key in categories) {
+                categories[key] = scoreAndRankPools(categories[key]);
+                logMessage(`${key}: ${categories[key].length} pools`, 'info');
+            }
+
+            return categories;
+        }
+
+        // ============================================
+        // UI RENDERING
+        // ============================================
+        function formatUsd(value) {
+            if (value >= 1e9) return '$' + (value / 1e9).toFixed(2) + 'B';
+            if (value >= 1e6) return '$' + (value / 1e6).toFixed(2) + 'M';
+            if (value >= 1e3) return '$' + (value / 1e3).toFixed(1) + 'K';
+            return '$' + value.toFixed(0);
+        }
+
+        function formatFee(fee) {
+            if (!fee && fee !== 0) return '—';
+            return fee.toFixed(2) + '%';
+        }
+
+        function formatApr(apr, source) {
+            if (!apr && apr !== 0) return '—';
+            let sourceIndicator = '';
+            if (source === 'api') sourceIndicator = '';
+            else if (source === 'calc') sourceIndicator = '*';
+            else if (source === 'total') sourceIndicator = '†';
+            return apr.toFixed(1) + '%' + sourceIndicator;
+        }
+
+        function formatUtilization(score) {
+            // Convert ratio to percentage: (volume/liquidity) * 100
+            const utilization = score * 100;
+            if (utilization >= 100) {
+                return utilization.toFixed(0) + '%';
+            } else if (utilization >= 10) {
+                return utilization.toFixed(1) + '%';
+            } else {
+                return utilization.toFixed(2) + '%';
+            }
+        }
+
+        function getUtilizationColorClass(score) {
+            const utilization = score * 100;
+            if (utilization >= 50) return 'utilization-excellent';
+            if (utilization >= 20) return 'utilization-high';
+            if (utilization >= 5) return 'utilization-moderate';
+            return 'utilization-low';
+        }
+
+        function getFeeBadgeClass(fee) {
+            if (!fee) return '';
+            if (fee <= 0.05) return 'fee-low';
+            if (fee <= 0.3) return 'fee-medium';
+            return 'fee-high';
+        }
+
+        function getLiquidityIndicator(liq) {
+            const min = CONFIG.MIN_LIQUIDITY;
+            const max = 500000000;
+            const clamped = Math.max(min, Math.min(liq, max));
+            const normalized = (Math.log10(clamped) - Math.log10(min)) /
+                (Math.log10(max) - Math.log10(min));
+
+            let colorClass;
+            if (normalized < 0.2) colorClass = 'liquidity-low';
+            else if (normalized < 0.4) colorClass = 'liquidity-mid-low';
+            else if (normalized < 0.6) colorClass = 'liquidity-mid';
+            else if (normalized < 0.8) colorClass = 'liquidity-mid-high';
+            else colorClass = 'liquidity-high';
+
+            return { colorClass, percentage: normalized * 100 };
+        }
+
+        function getAprColorClass(apr) {
+            if (apr >= 50) return 'apr-excellent';
+            if (apr >= 20) return 'apr-good';
+            if (apr >= 5) return 'apr-moderate';
+            return 'apr-low';
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderPoolRow(pool) {
+            const liqIndicator = getLiquidityIndicator(pool.liquidityUsd);
+
+            // Pool link to DexScreener
+            const poolLink = pool.poolUrl ?
+                `<a href="${escapeHtml(pool.poolUrl)}" target="_blank" rel="noopener" class="pool-link">${escapeHtml(pool.name)}</a>` :
+                escapeHtml(pool.name);
+
+            // Chain link to DeFiLlama
+            const chainLink = pool.chainUrl ?
+                `<a href="${escapeHtml(pool.chainUrl)}" target="_blank" rel="noopener" class="chain-link">${escapeHtml(pool.chain)}</a>` :
+                escapeHtml(pool.chain);
+
+            // Protocol link to DeFiLlama
+            const protocolLink = pool.protocolUrl ?
+                `<a href="${escapeHtml(pool.protocolUrl)}" target="_blank" rel="noopener" class="protocol-link protocol-badge" title="${escapeHtml(pool.protocol)}">${escapeHtml(pool.protocol)}</a>` :
+                `<span class="protocol-badge" title="${escapeHtml(pool.protocol)}">${escapeHtml(pool.protocol)}</span>`;
+
+            return `
+                <tr>
+                    <td>${chainLink}</td>
+                    <td>${protocolLink}</td>
+                    <td>${poolLink}</td>
+                    <td><span class="fee-badge ${getFeeBadgeClass(pool.feeTier)}">${formatFee(pool.feeTier)}</span></td>
+                    <td class="liquidity-cell">
+                        <div class="liquidity-bar" style="width: ${liqIndicator.percentage}%; background: hsl(${liqIndicator.percentage * 2.4}, 70%, 50%);"></div>
+                        <span class="liquidity-value ${liqIndicator.colorClass}">${formatUsd(pool.liquidityUsd)}</span>
+                    </td>
+                    <td>${formatUsd(pool.volumeUsd24h)}</td>
+                    <td class="utilization-value ${getUtilizationColorClass(pool.score)}">${formatUtilization(pool.score)}</td>
+                    <td class="apr-value ${getAprColorClass(pool.apr)}">${formatApr(pool.apr, pool.aprSource)}</td>
+                </tr>
+            `;
+        }
+
+        function renderSection(sectionId, pools) {
+            const tbody = document.getElementById(`${sectionId}-table-body`);
+            const noData = document.getElementById(`${sectionId}-no-data`);
+            const count = document.getElementById(`${sectionId}-count`);
+
+            count.textContent = `(${pools.length})`;
+
+            if (pools.length === 0) {
+                tbody.innerHTML = '';
+                noData.classList.remove('hidden');
+            } else {
+                tbody.innerHTML = pools.map(renderPoolRow).join('');
+                noData.classList.add('hidden');
+            }
+        }
+
+        function updateStatus(msg, type = 'info', loading = false) {
+            const statusBar = document.getElementById('status-bar');
+            const statusMsg = document.getElementById('status-message');
+            const spinner = document.getElementById('loading-spinner');
+
+            statusMsg.textContent = msg;
+            statusBar.className = type;
+
+            if (loading) {
+                spinner.classList.remove('hidden');
+            } else {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // SORTING
+        // ============================================
+        let currentCategorizedData = null;
+        let sortStates = {};
+
+        function sortPools(pools, field, direction) {
+            return [...pools].sort((a, b) => {
+                let aVal = a[field];
+                let bVal = b[field];
+
+                if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+                if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+                if (aVal == null) aVal = direction === 'asc' ? Infinity : -Infinity;
+                if (bVal == null) bVal = direction === 'asc' ? Infinity : -Infinity;
+
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+            });
+        }
+
+        // ============================================
+        // MAIN DASHBOARD REFRESH
+        // ============================================
+        async function refreshDashboard() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            debugLogs = [];
+            updateDebugDisplay();
+
+            try {
+                logMessage('Starting dashboard refresh...', 'info');
+
+                const rawPools = await fetchDeFiLlamaPools();
+                if (rawPools.length === 0) {
+                    updateStatus('Failed to fetch pools from DeFiLlama. Please try again.', 'error', false);
+                    return;
+                }
+
+                updateStatus('Processing pool data...', 'info', true);
+
+                const normalized = normalizeAllPools(rawPools);
+                if (normalized.length === 0) {
+                    updateStatus('No matching pools found after normalization.', 'warning', false);
+                    logMessage('No pools matched our asset criteria. Check asset class definitions.', 'warn');
+                    return;
+                }
+
+                const filtered = filterPools(normalized);
+                const categorized = categorizePools(filtered);
+                currentCategorizedData = categorized;
+
+                renderSection('btc-stable', categorized['btc-stable']);
+                renderSection('eth-stable', categorized['eth-stable']);
+                renderSection('btc-eth', categorized['btc-eth']);
+                renderSection('wrapped', categorized['wrapped']);
+                renderSection('stable-stable', categorized['stable-stable']);
+
+                const total = Object.values(categorized).reduce((sum, arr) => sum + arr.length, 0);
+                updateStatus(`Loaded ${total} pools successfully`, 'success', false);
+                document.getElementById('last-updated').textContent =
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+
+                logMessage(`Dashboard refresh complete. ${total} pools displayed.`, 'success');
+
+            } catch (error) {
+                logMessage(`Dashboard refresh error: ${error.message}`, 'error');
+                updateStatus('Error loading data. Please try again.', 'error', false);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // EVENT HANDLERS
+        // ============================================
+
+        // Refresh button
+        document.getElementById('refresh-btn').addEventListener('click', refreshDashboard);
+
+        // Section collapse handlers
+        document.querySelectorAll('.section-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.closest('.pair-section');
+                section.classList.toggle('collapsed');
+            });
+        });
+
+        // Sorting handlers
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const section = th.dataset.section;
+                const field = th.dataset.sort;
+                const key = `${section}-${field}`;
+
+                const currentDirection = sortStates[key] || 'desc';
+                const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+                sortStates[key] = newDirection;
+
+                document.querySelectorAll(`th[data-section="${section}"]`).forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                th.classList.add(`sort-${newDirection}`);
+
+                if (currentCategorizedData && currentCategorizedData[section]) {
+                    const sorted = sortPools(currentCategorizedData[section], field, newDirection);
+                    renderSection(section, sorted);
+                }
+            });
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        refreshDashboard();
+    </script>
+</body>
+</html>
