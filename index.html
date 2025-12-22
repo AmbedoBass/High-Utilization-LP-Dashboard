@@ -37,6 +37,8 @@
             --section-th-bg: #121212;
             --link-color: #999999;
             --link-color-hover: #cccccc;
+            --liquidity-bar-color: hsl(270, 50%, 35%);
+            --geckoterminal-color: #7c3aed;
         }
 
         * {
@@ -59,16 +61,66 @@
             background-color: var(--bg-color-lighter);
         }
 
-        header h1 {
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        .header-left h1 {
             font-size: 1.6rem;
             font-weight: 600;
             color: var(--primary-text-color);
             margin-bottom: 0.4rem;
         }
 
-        header p {
+        .header-left p {
             color: var(--secondary-text-color);
             font-size: 0.9rem;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-status {
+            font-size: 0.8rem;
+            color: var(--secondary-text-color);
+            text-align: right;
+        }
+
+        .header-status .pool-count {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .header-status .network-count {
+            color: var(--util-high);
+            font-weight: 500;
+        }
+
+        .header-status .loading-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--warning-color);
+        }
+
+        .header-status .error-indicator {
+            color: var(--error-color);
         }
 
         main {
@@ -85,20 +137,13 @@
             color: var(--secondary-text-color);
         }
 
-        #controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+        .data-sources {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
         }
 
-        .controls-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
+        .source-gecko {
+            color: var(--geckoterminal-color);
         }
 
         .btn {
@@ -134,34 +179,27 @@
             background-color: var(--util-high);
         }
 
-        .load-more-info {
-            font-size: 0.75rem;
-            color: var(--secondary-text-color);
-        }
-
-        #last-updated {
-            color: var(--secondary-text-color);
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
         }
 
-        #status-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
-            padding: 0.6rem 1rem;
-            background-color: var(--surface-color);
-            border-radius: 3px;
-            border-left: 3px solid var(--accent-color);
-            font-size: 0.85rem;
+        #progress-container {
+            width: 100%;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            margin-bottom: 1rem;
+            overflow: hidden;
         }
 
-        #status-bar.success { border-left-color: var(--success-color); }
-        #status-bar.error { border-left-color: var(--error-color); }
-        #status-bar.warning { border-left-color: var(--warning-color); }
-        #status-bar.info { border-left-color: var(--accent-color); }
-
-        #status-message { flex-grow: 1; }
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--geckoterminal-color), var(--util-excellent));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
 
         .spinner {
             width: 14px;
@@ -172,28 +210,19 @@
             animation: spin 0.8s linear infinite;
         }
 
-        .hidden { display: none !important; }
+        .spinner-sm {
+            width: 12px;
+            height: 12px;
+            border-width: 1.5px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        #progress-container {
-            width: 100%;
-            height: 4px;
-            background-color: var(--border-color);
-            border-radius: 2px;
-            margin-top: 0.5rem;
-            overflow: hidden;
-        }
-
-        #progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--util-moderate), var(--util-excellent));
-            border-radius: 2px;
-            transition: width 0.3s ease;
-            width: 0%;
         }
 
         #dashboard-grid {
@@ -255,7 +284,6 @@
             flex-wrap: wrap;
         }
 
-        /* Timeframe Toggle */
         .timeframe-toggle {
             display: flex;
             align-items: center;
@@ -289,7 +317,6 @@
             color: #fff;
         }
 
-        /* Network Selector */
         .network-selector {
             position: relative;
         }
@@ -339,7 +366,8 @@
 
         .network-dropdown {
             position: fixed;
-            width: 300px;
+            width: 320px;
+            max-width: calc(100vw - 20px);
             max-height: 600px;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
@@ -413,12 +441,17 @@
         }
 
         .network-item.not-loaded {
-            opacity: 0.4;
-            cursor: default;
+            opacity: 0.5;
         }
 
         .network-item.not-loaded:hover {
-            background-color: transparent;
+            background-color: rgba(251, 191, 36, 0.1);
+            opacity: 0.7;
+        }
+
+        .network-item.not-loaded.selected {
+            background-color: rgba(251, 191, 36, 0.15);
+            opacity: 0.8;
         }
 
         .network-checkbox {
@@ -438,6 +471,11 @@
         .network-item.selected .network-checkbox {
             background-color: var(--util-moderate);
             border-color: var(--util-high);
+        }
+
+        .network-item.not-loaded.selected .network-checkbox {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
         }
 
         .network-name {
@@ -462,13 +500,37 @@
             border-radius: 2px;
         }
 
+        .loaded-tag {
+            font-size: 0.6rem;
+            color: var(--success-color);
+            background-color: rgba(74, 222, 128, 0.15);
+            padding: 0.1rem 0.3rem;
+            border-radius: 2px;
+        }
+
         .dropdown-footer {
             padding: 0.6rem 0.75rem;
             border-top: 1px solid var(--border-color);
             display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
+            justify-content: space-between;
+            align-items: center;
             flex-shrink: 0;
+            gap: 0.5rem;
+        }
+
+        .dropdown-footer-info {
+            font-size: 0.7rem;
+            color: var(--secondary-text-color);
+        }
+
+        .dropdown-footer-info .to-load {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        .dropdown-footer-buttons {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .dropdown-footer .btn {
@@ -476,7 +538,6 @@
             font-size: 0.75rem;
         }
 
-        /* Section Loading Overlay */
         .section-overlay {
             position: absolute;
             inset: 0;
@@ -507,6 +568,8 @@
         .section-overlay-text {
             font-size: 0.85rem;
             color: var(--secondary-text-color);
+            text-align: center;
+            padding: 0 1rem;
         }
 
         .section-content {
@@ -527,6 +590,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
+            table-layout: fixed;
         }
 
         .pool-table th,
@@ -536,6 +600,28 @@
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
             vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pool-table .col-chain { width: 80px; }
+        .pool-table .col-protocol { width: 90px; }
+        .pool-table .col-pool { width: 200px; min-width: 180px; }
+        .pool-table .col-fee { width: 65px; }
+        .pool-table .col-liquidity { width: 100px; }
+        .pool-table .col-volume { width: 110px; }
+        .pool-table .col-util { width: 80px; }
+        .pool-table .col-apr { width: 90px; }
+
+        .pool-table .col-liquidity,
+        .pool-table .col-volume,
+        .pool-table .col-util,
+        .pool-table .col-apr,
+        .pool-table td:nth-child(5),
+        .pool-table td:nth-child(6),
+        .pool-table td:nth-child(7),
+        .pool-table td:nth-child(8) {
+            text-align: right;
         }
 
         .pool-table th {
@@ -584,16 +670,14 @@
             border-bottom: none;
         }
 
-        .pool-link,
-        .explorer-link {
+        .pool-link, .explorer-link {
             color: var(--link-color);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.15s ease;
         }
 
-        .pool-link:hover,
-        .explorer-link:hover {
+        .pool-link:hover, .explorer-link:hover {
             color: var(--link-color-hover);
             text-decoration: underline;
         }
@@ -602,14 +686,24 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
+            min-width: 180px;
         }
 
-        .explorer-link {
+        .pool-cell .pool-link {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pool-cell .explorer-link {
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
             font-size: 0.75rem;
             opacity: 0.5;
         }
 
-        .explorer-link:hover {
+        .pool-cell .explorer-link:hover {
             opacity: 1;
         }
 
@@ -618,6 +712,8 @@
         .token-usdc { color: var(--usdc-color); font-weight: 600; }
         .token-usdt { color: var(--usdt-color); font-weight: 600; }
         .token-dai { color: var(--dai-color); font-weight: 600; }
+        .token-stable { color: var(--primary-text-color); font-weight: 500; }
+        .token-prefix { font-weight: 400; }
 
         .protocol-badge {
             display: inline-block;
@@ -626,9 +722,10 @@
             font-size: 0.7rem;
             font-weight: 500;
             background-color: rgba(255, 255, 255, 0.08);
-            max-width: 85px;
+            max-width: 80px;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .fee-badge {
@@ -666,9 +763,10 @@
             left: 0;
             top: 0;
             bottom: 0;
-            opacity: 0.15;
+            opacity: 0.4;
             border-radius: 1px;
             z-index: 0;
+            background: linear-gradient(90deg, hsl(270, 50%, 25%), hsl(270, 50%, 40%));
         }
 
         .liquidity-value {
@@ -699,6 +797,12 @@
             font-size: 0.65rem;
             opacity: 0.6;
             margin-left: 0.2rem;
+            display: inline-block;
+            min-width: 28px;
+        }
+
+        .volume-cell, .apr-cell {
+            white-space: nowrap;
         }
 
         .table-container::-webkit-scrollbar {
@@ -763,6 +867,7 @@
         .log-warn { color: var(--warning-color); }
         .log-success { color: var(--success-color); }
         .log-info { color: var(--secondary-text-color); }
+        .log-gecko { color: var(--geckoterminal-color); }
 
         @media (max-width: 1200px) {
             #dashboard-grid {
@@ -771,9 +876,27 @@
         }
 
         @media (max-width: 768px) {
-            header { padding: 1rem; }
-            header h1 { font-size: 1.3rem; }
-            main { padding: 0.75rem; }
+            header {
+                padding: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-right {
+                align-items: flex-start;
+                width: 100%;
+            }
+
+            .header-left h1 {
+                font-size: 1.3rem;
+            }
+
+            main {
+                padding: 0.75rem;
+            }
 
             .section-header {
                 flex-direction: column;
@@ -795,30 +918,36 @@
                 padding: 0.45rem 0.5rem;
                 font-size: 0.78rem;
             }
+
+            .pool-table .col-pool {
+                min-width: 150px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>High Utilization LP Dashboard</h1>
-        <p>Find heavily utilized LPs via GeckoTerminal. Ranks pools by Utilization % (24h Volume ÷ Liquidity × 100). APR estimated from volume × fee.</p>
+        <div class="header-content">
+            <div class="header-left">
+                <h1>High Utilization LP Dashboard</h1>
+                <p>Find heavily utilized LPs via GeckoTerminal. Ranks pools by Utilization % (Volume ÷ Liquidity × 100). APR estimated from volume × fee.</p>
+            </div>
+            <div class="header-right">
+                <div class="header-controls">
+                    <div class="header-status" id="header-status">
+                        <span class="loading-indicator">
+                            <span class="spinner spinner-sm"></span>
+                            Initializing...
+                        </span>
+                    </div>
+                    <button id="refresh-btn" class="btn btn-sm">Refresh Data</button>
+                </div>
+                <div id="last-updated" style="font-size: 0.75rem; color: var(--secondary-text-color);"></div>
+            </div>
+        </div>
     </header>
 
     <main>
-        <div id="controls">
-            <div class="controls-left">
-                <button id="refresh-btn" class="btn">Refresh Data</button>
-                <button id="load-more-btn" class="btn btn-primary hidden">Load More Networks</button>
-                <span id="load-more-info" class="load-more-info hidden"></span>
-            </div>
-            <span id="last-updated">Loading...</span>
-        </div>
-
-        <div id="status-bar" class="info">
-            <span id="status-message">Initializing...</span>
-            <div id="loading-spinner" class="spinner hidden"></div>
-        </div>
-
         <div id="progress-container" class="hidden">
             <div id="progress-bar"></div>
         </div>
@@ -837,10 +966,12 @@
 
     <footer>
         <p>
-            Data from <a href="https://www.geckoterminal.com" target="_blank" style="color: var(--link-color);">GeckoTerminal API</a>.
-            APR estimates based on volume and fees. Always DYOR.
+            Always DYOR.
             <button id="debug-toggle" class="debug-toggle" style="margin-left: 1rem;">Toggle Debug</button>
         </p>
+        <div class="data-sources">
+            <span class="source-gecko">● Powered by GeckoTerminal API — Real volume & historical OHLCV data</span>
+        </div>
     </footer>
 
     <script>
@@ -851,18 +982,18 @@
         // CONFIGURATION
         // ============================================
         const CONFIG = {
-            API_BASE: 'https://api.geckoterminal.com/api/v2',
+            GECKOTERMINAL_API: 'https://api.geckoterminal.com/api/v2',
             RATE_LIMIT_MS: 2200,
             MAX_RETRIES: 3,
-            RETRY_DELAY_MS: 3000,
+            RETRY_DELAY_MS: 2000,
             TIMEOUT_MS: 25000,
             MIN_LIQUIDITY: 50000,
             MIN_VOLUME_24H: 1000,
             DEFAULT_FEE: 0.3,
-            MAX_OHLCV_FETCHES: 10,
+            POOLS_PER_PAGE: 20,
+            MAX_PAGES_PER_NETWORK: 5,
 
             INITIAL_NETWORKS: ['eth', 'arbitrum', 'base'],
-            ADDITIONAL_NETWORKS: ['optimism', 'polygon_pos', 'bsc', 'avax', 'zksync', 'linea', 'scroll', 'blast', 'mode', 'mantle', 'manta', 'fantom', 'gnosis'],
 
             NETWORK_GROUPS: {
                 'L1 Networks': [
@@ -878,22 +1009,42 @@
                     { id: 'optimism', name: 'Optimism' },
                     { id: 'zksync', name: 'zkSync' },
                     { id: 'linea', name: 'Linea' },
-                    { id: 'scroll', name: 'Scroll' },
-                    { id: 'blast', name: 'Blast' },
                     { id: 'mode', name: 'Mode' },
-                    { id: 'manta', name: 'Manta' }
+                    { id: 'manta', name: 'Manta' },
+                    { id: 'scroll', name: 'Scroll' },
+                    { id: 'blast', name: 'Blast' }
                 ],
                 'Other': [
                     { id: 'polygon_pos', name: 'Polygon' },
-                    { id: 'mantle', name: 'Mantle' }
+                    { id: 'mantle', name: 'Mantle' },
+                    { id: 'celo', name: 'Celo' }
+                ],
+                'Non-EVM': [
+                    { id: 'solana', name: 'Solana' },
+                    { id: 'sui', name: 'Sui' }
                 ]
             },
 
             NETWORK_NAMES: {
-                eth: 'Ethereum', arbitrum: 'Arbitrum', optimism: 'Optimism', base: 'Base',
-                polygon_pos: 'Polygon', zksync: 'zkSync', linea: 'Linea', scroll: 'Scroll',
-                blast: 'Blast', bsc: 'BSC', avax: 'Avalanche', fantom: 'Fantom',
-                gnosis: 'Gnosis', mode: 'Mode', mantle: 'Mantle', manta: 'Manta'
+                eth: 'Ethereum',
+                arbitrum: 'Arbitrum',
+                optimism: 'Optimism',
+                base: 'Base',
+                polygon_pos: 'Polygon',
+                zksync: 'zkSync',
+                linea: 'Linea',
+                bsc: 'BSC',
+                avax: 'Avalanche',
+                fantom: 'Fantom',
+                gnosis: 'Gnosis',
+                mode: 'Mode',
+                mantle: 'Mantle',
+                manta: 'Manta',
+                scroll: 'Scroll',
+                blast: 'Blast',
+                celo: 'Celo',
+                solana: 'Solana',
+                sui: 'Sui'
             },
 
             EXPLORERS: {
@@ -904,24 +1055,27 @@
                 polygon_pos: 'https://polygonscan.com/address/',
                 zksync: 'https://explorer.zksync.io/address/',
                 linea: 'https://lineascan.build/address/',
-                scroll: 'https://scrollscan.com/address/',
-                blast: 'https://blastscan.io/address/',
                 bsc: 'https://bscscan.com/address/',
                 avax: 'https://snowtrace.io/address/',
                 fantom: 'https://ftmscan.com/address/',
                 gnosis: 'https://gnosisscan.io/address/',
                 mode: 'https://explorer.mode.network/address/',
                 mantle: 'https://explorer.mantle.xyz/address/',
-                manta: 'https://pacific-explorer.manta.network/address/'
+                manta: 'https://pacific-explorer.manta.network/address/',
+                scroll: 'https://scrollscan.com/address/',
+                blast: 'https://blastscan.io/address/',
+                solana: 'https://solscan.io/account/',
+                sui: 'https://suiscan.xyz/mainnet/object/'
             },
 
-            SEARCHES: [
-                'WBTC USDC', 'WBTC USDT', 'cbBTC USDC', 'cbBTC USDT', 'tBTC USDC',
-                'WETH USDC', 'WETH USDT', 'ETH USDC', 'ETH USDT', 'WETH DAI',
-                'WBTC WETH', 'WBTC ETH', 'cbBTC WETH',
-                'WBTC cbBTC', 'WETH stETH', 'wstETH ETH', 'WETH rETH', 'rETH wstETH',
-                'USDC USDT', 'USDC DAI', 'USDT DAI', 'GHO USDC', 'GHO USDT'
-            ],
+            // Search queries for discovering pools
+            SEARCHES: {
+                'btc-stable': ['WBTC USDC', 'WBTC USDT', 'cbBTC USDC', 'cbBTC USDT', 'tBTC USDC', 'WBTC DAI', 'BTC USDC', 'BTC USDT'],
+                'eth-stable': ['WETH USDC', 'WETH USDT', 'ETH USDC', 'ETH USDT', 'WETH DAI', 'ETH DAI', 'stETH USDC'],
+                'btc-eth': ['WBTC WETH', 'WBTC ETH', 'cbBTC WETH', 'cbBTC ETH', 'WBTC cbBTC', 'tBTC WETH'],
+                'wrapped': ['wstETH ETH', 'wstETH WETH', 'rETH WETH', 'rETH ETH', 'cbETH WETH', 'cbETH ETH', 'stETH ETH', 'frxETH WETH', 'swETH WETH', 'mETH WETH', 'ezETH WETH', 'weETH WETH', 'rsETH WETH'],
+                'stable-stable': ['USDC USDT', 'USDC DAI', 'USDT DAI', 'GHO USDC', 'GHO USDT', 'FRAX USDC', 'LUSD USDC', 'crvUSD USDC', 'USDS USDC', 'USDE USDT']
+            },
 
             TIMEFRAMES: {
                 '24h': { days: 1, label: '24h' },
@@ -946,7 +1100,7 @@
 
             EXCLUDED: new Set(['btcbull', 'btcbear', 'ethbull', 'ethbear', 'btc2x', 'eth2x', 'btc3x', 'eth3x', 'btcup', 'btcdown', 'ethup', 'ethdown', 'ethfi', 'etherfi', 'btcpay', 'ethpay', 'btcdao', 'ethdao', 'btcix', 'ethix', 'methane', 'methanol', 'ethanol', 'ethernet', 'synthesis', 'synthetic', 'aesthetics', 'bethel', 'beth', 'elizabeth', 'macbeth']),
 
-            STABLE_PAIRS: new Set(['usdc', 'usdt', 'gho', 'dai', 'usdbc'])
+            STABLE_PAIRS: new Set(['usdc', 'usdt', 'gho', 'dai', 'usdbc', 'frax', 'lusd', 'usde', 'usds', 'crvusd'])
         };
 
         // Build asset lookup
@@ -995,7 +1149,7 @@
         function renderDebugLog() {
             const el = document.getElementById('debug-log');
             if (el) {
-                el.innerHTML = state.debugLogs.map(l => 
+                el.innerHTML = state.debugLogs.map(l =>
                     `<div class="log-${l.type}">[${l.ts}] ${l.msg}</div>`
                 ).join('');
                 el.scrollTop = el.scrollHeight;
@@ -1015,10 +1169,36 @@
             return '$' + val.toFixed(0);
         }
 
-        function updateStatus(msg, type = 'info', loading = false) {
-            document.getElementById('status-message').textContent = msg;
-            document.getElementById('status-bar').className = type;
-            document.getElementById('loading-spinner').classList.toggle('hidden', !loading);
+        function formatUtilization(util) {
+            const pct = util * 100;
+            if (pct >= 100) return pct.toFixed(0) + '%';
+            if (pct >= 10) return pct.toFixed(1) + '%';
+            return pct.toFixed(2) + '%';
+        }
+
+        function updateHeaderStatus(msg, type = 'info', loading = false) {
+            const el = document.getElementById('header-status');
+            if (!el) return;
+
+            if (loading) {
+                el.innerHTML = `
+                    <span class="loading-indicator">
+                        <span class="spinner spinner-sm"></span>
+                        ${escapeHtml(msg)}
+                    </span>
+                `;
+            } else if (type === 'error') {
+                el.innerHTML = `<span class="error-indicator">${escapeHtml(msg)}</span>`;
+            } else if (type === 'success') {
+                const poolCount = state.pools.size;
+                const networkCount = state.loadedNetworks.size;
+                el.innerHTML = `
+                    <span class="pool-count">${poolCount}</span> pools from 
+                    <span class="network-count">${networkCount}</span> networks
+                `;
+            } else {
+                el.innerHTML = escapeHtml(msg);
+            }
         }
 
         function updateProgress(pct) {
@@ -1034,9 +1214,70 @@
         }
 
         // ============================================
-        // API CLIENT
+        // TOKEN FORMATTING
         // ============================================
-        async function apiCall(endpoint, params = {}) {
+        function formatTokenSymbol(symbol) {
+            if (!symbol) return '';
+            const original = symbol.trim();
+            const upper = original.toUpperCase();
+            const lower = original.toLowerCase();
+
+            const btcIndex = upper.indexOf('BTC');
+            if (btcIndex !== -1 && !CONFIG.EXCLUDED.has(lower)) {
+                const prefix = original.substring(0, btcIndex).toLowerCase();
+                const suffix = original.substring(btcIndex + 3).toLowerCase();
+                let html = '';
+                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
+                html += `<span class="token-btc">BTC</span>`;
+                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
+                return html;
+            }
+
+            const ethIndex = upper.indexOf('ETH');
+            if (ethIndex !== -1 && !CONFIG.EXCLUDED.has(lower)) {
+                const prefix = original.substring(0, ethIndex).toLowerCase();
+                const suffix = original.substring(ethIndex + 3).toLowerCase();
+                let html = '';
+                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
+                html += `<span class="token-eth">ETH</span>`;
+                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
+                return html;
+            }
+
+            const normalized = lower.replace(/\./g, '');
+            if (normalized === 'usdc' || normalized === 'usdce') {
+                return `<span class="token-usdc">${escapeHtml(upper)}</span>`;
+            }
+            if (normalized === 'usdt' || normalized === 'usdtce' || normalized === 'usdte') {
+                return `<span class="token-usdt">${escapeHtml(upper)}</span>`;
+            }
+            if (normalized === 'dai' || normalized === 'daie') {
+                return `<span class="token-dai">${escapeHtml(upper)}</span>`;
+            }
+            if (ASSET_MAP[normalized] === 'STABLE') {
+                return `<span class="token-stable">${escapeHtml(upper)}</span>`;
+            }
+
+            return escapeHtml(upper);
+        }
+
+        function colorizePoolName(name) {
+            if (!name) return '';
+            const parts = name.split(/(\s*[\/\-]\s*)/);
+            return parts.map(part => {
+                const trimmed = part.trim();
+                if (/^^[\/\-\s]+$/.test(part)) return escapeHtml(part);
+                if (/^^\d+\.?\d*%?$/.test(trimmed)) {
+                    return `<span style="opacity:0.6">${escapeHtml(trimmed)}</span>`;
+                }
+                return formatTokenSymbol(trimmed);
+            }).join('');
+        }
+
+        // ============================================
+        // GECKOTERMINAL API CLIENT
+        // ============================================
+        async function geckoApiCall(endpoint, params = {}) {
             const now = Date.now();
             const elapsed = now - state.lastApiCall;
             if (elapsed < CONFIG.RATE_LIMIT_MS) {
@@ -1045,7 +1286,7 @@
             state.lastApiCall = Date.now();
             state.apiCalls++;
 
-            const url = new URL(CONFIG.API_BASE + endpoint);
+            const url = new URL(CONFIG.GECKOTERMINAL_API + endpoint);
             Object.entries(params).forEach(([k, v]) => {
                 if (v != null) url.searchParams.set(k, String(v));
             });
@@ -1054,16 +1295,14 @@
                 try {
                     const ctrl = new AbortController();
                     const timeout = setTimeout(() => ctrl.abort(), CONFIG.TIMEOUT_MS);
-                    
                     const res = await fetch(url.toString(), {
                         signal: ctrl.signal,
                         headers: { Accept: 'application/json' }
                     });
-                    
                     clearTimeout(timeout);
 
                     if (res.status === 429) {
-                        log('Rate limited, waiting 10s...', 'warn');
+                        log('GeckoTerminal rate limited, waiting 10s...', 'warn');
                         await sleep(10000);
                         continue;
                     }
@@ -1071,7 +1310,7 @@
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     return await res.json();
                 } catch (err) {
-                    log(`API error (${attempt}/${CONFIG.MAX_RETRIES}): ${err.message}`, 'warn');
+                    log(`GeckoTerminal error (${attempt}/${CONFIG.MAX_RETRIES}): ${err.message}`, 'warn');
                     if (attempt < CONFIG.MAX_RETRIES) {
                         await sleep(CONFIG.RETRY_DELAY_MS * attempt);
                     }
@@ -1080,25 +1319,38 @@
             return null;
         }
 
-        async function searchPools(query, network) {
-            const params = { query };
-            if (network) params.network = network;
-            const res = await apiCall('/search/pools', params);
-            return res ? { pools: res.data || [], included: res.included || [] } : { pools: [], included: [] };
+        async function fetchTopPools(network, page = 1) {
+            const res = await geckoApiCall(`/networks/${network}/pools`, {
+                page,
+                include: 'dex,base_token,quote_token'
+            });
+            return res;
         }
 
-        async function fetchTopPools(network) {
-            const res = await apiCall(`/networks/${network}/pools`, { page: 1, include: 'base_token,quote_token,dex' });
-            return res ? { pools: res.data || [], included: res.included || [] } : { pools: [], included: [] };
+        async function searchPools(query, network = null) {
+            const params = { query };
+            if (network) params.network = network;
+            const res = await geckoApiCall('/search/pools', params);
+            return res?.data || [];
         }
 
         async function fetchOHLCV(network, address, days) {
-            const res = await apiCall(`/networks/${network}/pools/${address}/ohlcv/day`, { aggregate: 1, limit: days, currency: 'usd' });
-            if (!res) return { volume: 0 };
+            const res = await geckoApiCall(`/networks/${network}/pools/${address}/ohlcv/day`, {
+                aggregate: 1,
+                limit: Math.min(days, 365),
+                currency: 'usd'
+            });
+
+            if (!res) return { volume: null };
+
             const list = res.data?.attributes?.ohlcv_list || [];
+            if (list.length === 0) return { volume: null };
+
             let vol = 0;
-            list.forEach(c => { if (c && c[5]) vol += parseFloat(c[5]) || 0; });
-            return { volume: vol };
+            list.forEach(c => {
+                if (c && c[5]) vol += parseFloat(c[5]) || 0;
+            });
+            return { volume: vol > 0 ? vol : null };
         }
 
         // ============================================
@@ -1122,12 +1374,14 @@
         function getPairType(baseAsset, quoteAsset, baseSym, quoteSym) {
             if (!baseAsset || !quoteAsset) return null;
 
+            // Check stable-stable first
             if (isStablePair(baseSym) && isStablePair(quoteSym)) {
                 if (normalizeSymbol(baseSym) !== normalizeSymbol(quoteSym)) {
                     return 'stable-stable';
                 }
             }
 
+            // Same asset class = wrapped twins
             if (baseAsset === quoteAsset) {
                 return (baseAsset === 'BTC' || baseAsset === 'ETH') ? 'wrapped' : null;
             }
@@ -1136,24 +1390,13 @@
             if (sorted === 'BTC-STABLE') return 'btc-stable';
             if (sorted === 'ETH-STABLE') return 'eth-stable';
             if (sorted === 'BTC-ETH') return 'btc-eth';
-            return null;
-        }
 
-        function parsePoolName(name) {
-            if (!name) return null;
-            const clean = name.replace(/\s*\d+\.?\d*%?\s*$/i, '').replace(/\s*\d+bps\s*$/i, '').trim();
-            for (const sep of [' / ', '/', ' - ', '-']) {
-                const parts = clean.split(sep).filter(p => p.trim());
-                if (parts.length >= 2) {
-                    return { base: parts[0].trim(), quote: parts[1].trim() };
-                }
-            }
             return null;
         }
 
         function extractFee(name) {
             if (!name) return null;
-            const pct = name.match(/(\d+\.?\d*)\s*%\s*$/);
+            const pct = name.match(/(\d+\.?\d*)\s*%/);
             if (pct) {
                 const f = parseFloat(pct[1]);
                 if (f > 0 && f < 10) return f;
@@ -1163,28 +1406,37 @@
             return null;
         }
 
-        function normalizePool(pool, included) {
-            const attr = pool.attributes || {};
-            const rels = pool.relationships || {};
+        function normalizeGeckoPool(poolData, included = [], network) {
+            if (!poolData || !poolData.attributes) return null;
 
-            const networkId = pool.id?.split('_')[0];
+            const attr = poolData.attributes;
             const address = attr.address;
-            if (!networkId || !address) return null;
+            if (!address) return null;
 
-            const lookup = { tokens: {}, dexes: {} };
-            (included || []).forEach(item => {
-                if (item.type === 'token') lookup.tokens[item.id] = item.attributes;
-                if (item.type === 'dex') lookup.dexes[item.id] = item.attributes;
-            });
+            // Find base and quote tokens from included data
+            const baseTokenRef = poolData.relationships?.base_token?.data;
+            const quoteTokenRef = poolData.relationships?.quote_token?.data;
+            const dexRef = poolData.relationships?.dex?.data;
 
-            let baseSym = lookup.tokens[rels.base_token?.data?.id]?.symbol;
-            let quoteSym = lookup.tokens[rels.quote_token?.data?.id]?.symbol;
+            let baseSym = null, quoteSym = null, protocol = 'Unknown';
 
+            if (included && included.length > 0) {
+                const baseToken = included.find(i => i.type === 'token' && i.id === baseTokenRef?.id);
+                const quoteToken = included.find(i => i.type === 'token' && i.id === quoteTokenRef?.id);
+                const dex = included.find(i => i.type === 'dex' && i.id === dexRef?.id);
+
+                baseSym = baseToken?.attributes?.symbol;
+                quoteSym = quoteToken?.attributes?.symbol;
+                protocol = dex?.attributes?.name || dexRef?.id || 'Unknown';
+            }
+
+            // Fallback: parse from pool name
             if (!baseSym || !quoteSym) {
-                const parsed = parsePoolName(attr.name);
-                if (parsed) {
-                    baseSym = baseSym || parsed.base;
-                    quoteSym = quoteSym || parsed.quote;
+                const name = attr.name || '';
+                const parts = name.split(/[\s\/\-]+/).filter(p => p && !/^^\d/.test(p) && p !== '%');
+                if (parts.length >= 2) {
+                    baseSym = baseSym || parts[0];
+                    quoteSym = quoteSym || parts[1];
                 }
             }
 
@@ -1202,17 +1454,22 @@
             const volume24h = parseFloat(attr.volume_usd?.h24) || 0;
             const fee = extractFee(attr.name) || CONFIG.DEFAULT_FEE;
 
-            let protocol = 'Unknown';
-            const dexId = rels.dex?.data?.id;
-            if (dexId && lookup.dexes[dexId]) {
-                protocol = lookup.dexes[dexId].name || dexId;
-            } else if (dexId) {
-                protocol = dexId.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+            // Build pool name
+            let poolName = `${baseSym} / ${quoteSym}`;
+            if (fee !== CONFIG.DEFAULT_FEE) {
+                poolName += ` ${fee}%`;
             }
 
+            // Clean up protocol name
+            protocol = protocol.replace(/_/g, ' ').split(' ').map(w => 
+                w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+            ).join(' ');
+
+            const uniqueId = `${network}_${address.toLowerCase()}`;
+
             return {
-                id: pool.id,
-                name: attr.name || `${baseSym}/${quoteSym}`,
+                id: uniqueId,
+                name: poolName,
                 baseSym,
                 quoteSym,
                 baseAsset,
@@ -1222,53 +1479,85 @@
                 volume24h,
                 volumeData: { '24h': volume24h },
                 fee,
-                chain: CONFIG.NETWORK_NAMES[networkId] || networkId,
-                chainId: networkId,
+                chain: CONFIG.NETWORK_NAMES[network] || network,
+                chainId: network,
                 protocol,
                 address,
-                poolUrl: `https://www.geckoterminal.com/${networkId}/pools/${address}`,
-                explorerUrl: CONFIG.EXPLORERS[networkId] ? CONFIG.EXPLORERS[networkId] + address : ''
+                poolUrl: `https://www.geckoterminal.com/${network}/pools/${address}`,
+                explorerUrl: CONFIG.EXPLORERS[network] ? CONFIG.EXPLORERS[network] + address : '',
+                dataSource: 'geckoterminal'
             };
         }
 
         // ============================================
         // DATA FETCHING
         // ============================================
-        async function discoverPools(networks, onProgress) {
+        async function discoverPoolsForNetwork(network, onProgress) {
             const discovered = new Map();
             let step = 0;
-            const total = CONFIG.SEARCHES.length + networks.length;
 
-            for (const search of CONFIG.SEARCHES) {
-                for (const net of networks) {
-                    if (state.loadedNetworks.has(net)) continue;
-                    const result = await searchPools(search, net);
-                    result.pools.forEach(p => {
-                        if (!discovered.has(p.id) && !state.pools.has(p.id)) {
-                            const norm = normalizePool(p, result.included);
-                            if (norm) discovered.set(p.id, norm);
-                        }
-                    });
-                }
-                step++;
-                onProgress?.((step / total) * 100);
-            }
+            log(`[GeckoTerminal] Loading pools for ${network}...`, 'gecko');
 
-            for (const net of networks) {
-                if (state.loadedNetworks.has(net)) { step++; continue; }
-                const result = await fetchTopPools(net);
-                result.pools.forEach(p => {
-                    const norm = normalizePool(p, result.included);
+            // Step 1: Fetch top pools (multiple pages)
+            for (let page = 1; page <= CONFIG.MAX_PAGES_PER_NETWORK; page++) {
+                const res = await fetchTopPools(network, page);
+                if (!res || !res.data || res.data.length === 0) break;
+
+                res.data.forEach(pool => {
+                    const norm = normalizeGeckoPool(pool, res.included || [], network);
                     if (norm && !discovered.has(norm.id) && !state.pools.has(norm.id)) {
-                        discovered.set(norm.id, norm);
+                        if (norm.liquidity >= CONFIG.MIN_LIQUIDITY && norm.volume24h >= CONFIG.MIN_VOLUME_24H) {
+                            discovered.set(norm.id, norm);
+                        }
                     }
                 });
-                state.loadedNetworks.add(net);
+
                 step++;
-                onProgress?.((step / total) * 100);
+                if (onProgress) onProgress((step / (CONFIG.MAX_PAGES_PER_NETWORK + Object.values(CONFIG.SEARCHES).flat().length)) * 100);
             }
 
+            // Step 2: Search for specific pair types
+            const allSearches = Object.values(CONFIG.SEARCHES).flat();
+            for (const query of allSearches) {
+                const pools = await searchPools(query, network);
+                pools.forEach(pool => {
+                    const norm = normalizeGeckoPool(pool, [], network);
+                    if (norm && !discovered.has(norm.id) && !state.pools.has(norm.id)) {
+                        if (norm.liquidity >= CONFIG.MIN_LIQUIDITY && norm.volume24h >= CONFIG.MIN_VOLUME_24H) {
+                            discovered.set(norm.id, norm);
+                        }
+                    }
+                });
+
+                step++;
+                if (onProgress) onProgress((step / (CONFIG.MAX_PAGES_PER_NETWORK + allSearches.length)) * 100);
+            }
+
+            state.loadedNetworks.add(network);
+            log(`[GeckoTerminal] Found ${discovered.size} pools on ${network}`, 'gecko');
             return discovered;
+        }
+
+        async function discoverPools(networks, onProgress) {
+            const allDiscovered = new Map();
+            let networksDone = 0;
+
+            for (const network of networks) {
+                if (state.loadedNetworks.has(network)) continue;
+
+                const discovered = await discoverPoolsForNetwork(network, pct => {
+                    const overall = ((networksDone + (pct / 100)) / networks.length) * 100;
+                    if (onProgress) onProgress(overall);
+                });
+
+                discovered.forEach((pool, id) => allDiscovered.set(id, pool));
+                networksDone++;
+
+                if (onProgress) onProgress((networksDone / networks.length) * 100);
+            }
+
+            log(`[GeckoTerminal] Total discovered: ${allDiscovered.size} pools from ${networks.length} networks`, 'success');
+            return allDiscovered;
         }
 
         // ============================================
@@ -1291,22 +1580,26 @@
 
         function calculateMetrics(pool, timeframe) {
             const days = CONFIG.TIMEFRAMES[timeframe].days;
-            let displayVol = pool.volumeData[timeframe];
-            let estimated = false;
+            const displayVol = pool.volumeData[timeframe];
 
-            if (displayVol == null) {
-                displayVol = pool.volume24h * days;
-                estimated = true;
+            if (displayVol == null || displayVol <= 0) {
+                pool.displayVolume = null;
+                pool.utilization = null;
+                pool.apr = null;
+                pool.hasRealData = false;
+                return pool;
             }
 
             pool.displayVolume = displayVol;
-            pool.volumeEstimated = estimated;
-            pool.utilization = pool.liquidity > 0 ? pool.volume24h / pool.liquidity : 0;
+            pool.hasRealData = true;
+
+            const dailyVolume = displayVol / days;
+            pool.utilization = pool.liquidity > 0 ? dailyVolume / pool.liquidity : 0;
 
             if (pool.liquidity > 0) {
-                const dailyVol = displayVol / days;
-                const dailyFee = dailyVol * (pool.fee / 100);
-                pool.apr = (dailyFee * 365 / pool.liquidity) * 100;
+                const feesEarned = displayVol * (pool.fee / 100);
+                const annualizedFees = (feesEarned * 365) / days;
+                pool.apr = (annualizedFees / pool.liquidity) * 100;
             } else {
                 pool.apr = 0;
             }
@@ -1332,61 +1625,51 @@
             if (timeframe === '24h') return;
 
             const sec = state.sections[sectionId];
-            const pools = getPoolsForSection(sectionId).slice(0, CONFIG.MAX_OHLCV_FETCHES);
+            const pools = getPoolsForSection(sectionId);
             const days = CONFIG.TIMEFRAMES[timeframe].days;
 
-            for (const pool of pools) {
+            const poolsToFetch = pools.filter(pool => {
                 const key = `${pool.id}_${timeframe}`;
-                if (sec.ohlcvCache[key] != null) {
-                    const cached = state.pools.get(pool.id);
-                    if (cached) cached.volumeData[timeframe] = sec.ohlcvCache[key];
-                } else {
-                    const result = await fetchOHLCV(pool.chainId, pool.address, days);
-                    const vol = result.volume > 0 ? result.volume : pool.volume24h * days;
-                    sec.ohlcvCache[key] = vol;
-                    const cached = state.pools.get(pool.id);
-                    if (cached) cached.volumeData[timeframe] = vol;
+                return sec.ohlcvCache[key] === undefined;
+            });
+
+            log(`[${sectionId}] Fetching ${timeframe} volume for ${poolsToFetch.length} pools...`, 'gecko');
+
+            let fetched = 0;
+            for (const pool of poolsToFetch) {
+                const key = `${pool.id}_${timeframe}`;
+                setSectionLoading(sectionId, true, `Fetching ${days}d volume: ${fetched + 1}/${poolsToFetch.length} pools...`);
+
+                const result = await fetchOHLCV(pool.chainId, pool.address, days);
+                sec.ohlcvCache[key] = result.volume;
+
+                const cached = state.pools.get(pool.id);
+                if (cached) {
+                    cached.volumeData[timeframe] = result.volume;
                 }
+
+                fetched++;
             }
+
+            // Update from cache
+            pools.forEach(pool => {
+                const key = `${pool.id}_${timeframe}`;
+                if (sec.ohlcvCache[key] !== undefined) {
+                    const cached = state.pools.get(pool.id);
+                    if (cached) {
+                        cached.volumeData[timeframe] = sec.ohlcvCache[key];
+                    }
+                }
+            });
+
+            log(`[${sectionId}] Completed ${timeframe} volume fetch`, 'success');
         }
 
         // ============================================
         // RENDERING
         // ============================================
-        function formatToken(sym) {
-            if (!sym) return '';
-            const n = normalizeSymbol(sym);
-            const upper = sym.toUpperCase();
-
-            const tokenColors = {
-                btc: 'token-btc', wbtc: 'token-btc', cbbtc: 'token-btc', tbtc: 'token-btc',
-                eth: 'token-eth', weth: 'token-eth', steth: 'token-eth', wsteth: 'token-eth', reth: 'token-eth', cbeth: 'token-eth', weeth: 'token-eth',
-                usdc: 'token-usdc', usdce: 'token-usdc',
-                usdt: 'token-usdt', usdtce: 'token-usdt',
-                dai: 'token-dai', daie: 'token-dai'
-            };
-
-            const cls = tokenColors[n];
-            if (cls) return `<span class="${cls}">${escapeHtml(upper)}</span>`;
-
-            const asset = getAssetClass(sym);
-            if (asset === 'BTC') return `<span class="token-btc">${escapeHtml(upper)}</span>`;
-            if (asset === 'ETH') return `<span class="token-eth">${escapeHtml(upper)}</span>`;
-            return escapeHtml(upper);
-        }
-
-        function colorizePoolName(name) {
-            if (!name) return '';
-            const parts = name.split(/(\s*[\/\-]\s*)/);
-            return parts.map(p => {
-                const t = p.trim();
-                if (/^^[\/\-\s]+$/.test(p)) return escapeHtml(p);
-                if (/^^\d+\.?\d*%?$/.test(t)) return `<span style="opacity:0.6">${escapeHtml(t)}</span>`;
-                return formatToken(t);
-            }).join('');
-        }
-
         function getUtilClass(u) {
+            if (u == null) return '';
             const p = u * 100;
             if (p >= 50) return 'utilization-excellent';
             if (p >= 20) return 'utilization-high';
@@ -1395,6 +1678,7 @@
         }
 
         function getAprClass(apr) {
+            if (apr == null) return '';
             if (apr >= 50) return 'apr-excellent';
             if (apr >= 20) return 'apr-good';
             if (apr >= 5) return 'apr-moderate';
@@ -1408,35 +1692,47 @@
         }
 
         function renderPoolRow(pool, tf) {
-            const liqPct = Math.min(100, Math.max(0, (Math.log10(Math.max(pool.liquidity, CONFIG.MIN_LIQUIDITY)) - Math.log10(CONFIG.MIN_LIQUIDITY)) / (Math.log10(500000000) - Math.log10(CONFIG.MIN_LIQUIDITY)) * 100));
-            const tfInd = tf !== '24h' ? `<span class="tf-indicator">(${tf}${pool.volumeEstimated ? ' est' : ''})</span>` : '';
-            const aprInd = tf !== '24h' ? `<span class="tf-indicator">(${tf})</span>` : '';
+            const liqPct = Math.min(100, Math.max(0,
+                (Math.log10(Math.max(pool.liquidity, CONFIG.MIN_LIQUIDITY)) - Math.log10(CONFIG.MIN_LIQUIDITY)) /
+                (Math.log10(500000000) - Math.log10(CONFIG.MIN_LIQUIDITY)) * 100
+            ));
+
+            const tfInd = tf !== '24h' ? `<span class="tf-indicator">(${tf})</span>` : '';
+            const volumeDisplay = pool.displayVolume != null ? formatUsd(pool.displayVolume) : 'N/A';
+            const utilDisplay = pool.utilization != null ? formatUtilization(pool.utilization) : 'N/A';
+            const aprDisplay = pool.apr != null ? pool.apr.toFixed(1) + '%' : 'N/A';
 
             return `
                 <tr>
-                    <td>${escapeHtml(pool.chain)}</td>
-                    <td><span class="protocol-badge" title="${escapeHtml(pool.protocol)}">${escapeHtml(pool.protocol)}</span></td>
-                    <td class="pool-cell">
-                        <a href="${escapeHtml(pool.poolUrl)}" target="_blank" class="pool-link">${colorizePoolName(pool.name)}</a>
-                        ${pool.explorerUrl ? `<a href="${escapeHtml(pool.explorerUrl)}" target="_blank" class="explorer-link" title="View contract">📋</a>` : ''}
+                    <td class="col-chain">${escapeHtml(pool.chain)}</td>
+                    <td class="col-protocol"><span class="protocol-badge" title="${escapeHtml(pool.protocol)}">${escapeHtml(pool.protocol)}</span></td>
+                    <td class="col-pool">
+                        <div class="pool-cell">
+                            <a href="${escapeHtml(pool.poolUrl)}" target="_blank" class="pool-link">${colorizePoolName(pool.name)}</a>
+                            <a href="${pool.explorerUrl || '#'}" target="_blank" class="explorer-link" title="View contract" ${!pool.explorerUrl ? 'style="visibility:hidden"' : ''}>📋</a>
+                        </div>
                     </td>
-                    <td><span class="fee-badge ${getFeeClass(pool.fee)}">${pool.fee.toFixed(2)}%</span></td>
-                    <td class="liquidity-cell">
-                        <div class="liquidity-bar" style="width:${liqPct}%;background:hsl(0,0%,${30 + liqPct * 0.4}%)"></div>
+                    <td class="col-fee"><span class="fee-badge ${getFeeClass(pool.fee)}">${pool.fee.toFixed(2)}%</span></td>
+                    <td class="col-liquidity liquidity-cell">
+                        <div class="liquidity-bar" style="width:${liqPct}%"></div>
                         <span class="liquidity-value">${formatUsd(pool.liquidity)}</span>
                     </td>
-                    <td>${formatUsd(pool.displayVolume)}${tfInd}</td>
-                    <td class="utilization-value ${getUtilClass(pool.utilization)}">${(pool.utilization * 100).toFixed(pool.utilization >= 1 ? 0 : pool.utilization >= 0.1 ? 1 : 2)}%</td>
-                    <td class="apr-value ${getAprClass(pool.apr)}">${pool.apr.toFixed(1)}%${aprInd}</td>
+                    <td class="col-volume volume-cell">${volumeDisplay}${tfInd}</td>
+                    <td class="col-util utilization-value ${getUtilClass(pool.utilization)}">${utilDisplay}</td>
+                    <td class="col-apr apr-cell apr-value ${getAprClass(pool.apr)}">${aprDisplay}${tfInd}</td>
                 </tr>
             `;
         }
 
         function renderSection(sectionId) {
             const sec = state.sections[sectionId];
-            const pools = getPoolsForSection(sectionId)
+            let pools = getPoolsForSection(sectionId)
                 .map(p => calculateMetrics(p, sec.timeframe));
-            
+
+            if (sec.timeframe !== '24h') {
+                pools = pools.filter(p => p.hasRealData);
+            }
+
             const sorted = sortPools(pools, sec.sortField, sec.sortDir);
 
             const tbody = document.getElementById(`${sectionId}-tbody`);
@@ -1471,7 +1767,7 @@
         // SECTION HTML GENERATION
         // ============================================
         function generateSectionHTML(config) {
-            const tfButtons = Object.keys(CONFIG.TIMEFRAMES).map(tf => 
+            const tfButtons = Object.keys(CONFIG.TIMEFRAMES).map(tf =>
                 `<button class="tf-btn${tf === '24h' ? ' active' : ''}" data-tf="${tf}">${tf}</button>`
             ).join('');
 
@@ -1501,19 +1797,19 @@
                             <table class="pool-table">
                                 <thead>
                                     <tr>
-                                        <th data-sort="chain" data-section="${config.id}">Chain</th>
-                                        <th data-sort="protocol" data-section="${config.id}">Protocol</th>
-                                        <th data-sort="name" data-section="${config.id}">Pool</th>
-                                        <th data-sort="fee" data-section="${config.id}">Fee</th>
-                                        <th data-sort="liquidity" data-section="${config.id}">Liquidity</th>
-                                        <th data-sort="displayVolume" data-section="${config.id}">Volume</th>
-                                        <th data-sort="utilization" data-section="${config.id}">Util %</th>
-                                        <th data-sort="apr" data-section="${config.id}">Est. APR</th>
+                                        <th class="col-chain" data-sort="chain" data-section="${config.id}">Chain</th>
+                                        <th class="col-protocol" data-sort="protocol" data-section="${config.id}">Protocol</th>
+                                        <th class="col-pool" data-sort="name" data-section="${config.id}">Pool</th>
+                                        <th class="col-fee" data-sort="fee" data-section="${config.id}">Fee</th>
+                                        <th class="col-liquidity" data-sort="liquidity" data-section="${config.id}">Liquidity</th>
+                                        <th class="col-volume" data-sort="displayVolume" data-section="${config.id}">Volume</th>
+                                        <th class="col-util" data-sort="utilization" data-section="${config.id}">Util %</th>
+                                        <th class="col-apr" data-sort="apr" data-section="${config.id}">Est. APR</th>
                                     </tr>
                                 </thead>
                                 <tbody id="${config.id}-tbody"></tbody>
                             </table>
-                            <div class="no-data hidden" id="${config.id}-nodata">No pools found.</div>
+                            <div class="no-data hidden" id="${config.id}-nodata">No pools found. Select more networks or check filters.</div>
                         </div>
                     </div>
                     <div class="section-overlay" id="${config.id}-overlay">
@@ -1544,7 +1840,8 @@
         // ============================================
         // NETWORK DROPDOWN
         // ============================================
-        function buildDropdownHTML() {
+        function buildDropdownHTML(sectionId) {
+            const sec = state.sections[sectionId];
             let html = `
                 <div class="dropdown-header">
                     <span>Filter Networks</span>
@@ -1556,11 +1853,13 @@
             Object.entries(CONFIG.NETWORK_GROUPS).forEach(([group, nets]) => {
                 html += `<div class="network-group-label">${group}</div>`;
                 nets.forEach(net => {
+                    const isLoaded = state.loadedNetworks.has(net.id);
                     html += `
                         <div class="network-item" data-net="${net.id}">
                             <div class="network-checkbox"></div>
                             <span class="network-name">${net.name}</span>
                             ${net.initial ? '<span class="network-tag">Initial</span>' : ''}
+                            ${isLoaded ? '<span class="loaded-tag">Loaded</span>' : '<span class="not-loaded-tag">Click to load</span>'}
                         </div>
                     `;
                 });
@@ -1569,8 +1868,11 @@
             html += `
                 </div>
                 <div class="dropdown-footer">
-                    <button class="btn cancel-btn">Cancel</button>
-                    <button class="btn btn-primary apply-btn">Apply</button>
+                    <div class="dropdown-footer-info" id="${sectionId}-footer-info"></div>
+                    <div class="dropdown-footer-buttons">
+                        <button class="btn cancel-btn">Cancel</button>
+                        <button class="btn btn-primary apply-btn">Apply</button>
+                    </div>
                 </div>
             `;
 
@@ -1588,6 +1890,9 @@
         function updateDropdownUI(sectionId) {
             const dropdown = document.getElementById(`${sectionId}-dropdown`);
             const sec = state.sections[sectionId];
+            const footerInfo = document.getElementById(`${sectionId}-footer-info`);
+
+            let networksToLoad = 0;
 
             dropdown.querySelectorAll('.network-item').forEach(item => {
                 const netId = item.dataset.net;
@@ -1598,20 +1903,53 @@
                 item.classList.toggle('not-loaded', !loaded);
                 item.querySelector('.network-checkbox').textContent = selected ? '✓' : '';
 
-                const existingTag = item.querySelector('.not-loaded-tag');
-                if (!loaded && !existingTag) {
-                    item.insertAdjacentHTML('beforeend', '<span class="not-loaded-tag">Not loaded</span>');
-                } else if (loaded && existingTag) {
-                    existingTag.remove();
+                // Update tags
+                const loadedTag = item.querySelector('.loaded-tag');
+                const notLoadedTag = item.querySelector('.not-loaded-tag');
+
+                if (loaded) {
+                    if (!loadedTag) {
+                        const newTag = document.createElement('span');
+                        newTag.className = 'loaded-tag';
+                        newTag.textContent = 'Loaded';
+                        item.appendChild(newTag);
+                    }
+                    if (notLoadedTag) notLoadedTag.remove();
+                } else {
+                    if (!notLoadedTag) {
+                        const newTag = document.createElement('span');
+                        newTag.className = 'not-loaded-tag';
+                        newTag.textContent = 'Click to load';
+                        item.appendChild(newTag);
+                    }
+                    if (loadedTag) loadedTag.remove();
+                    if (selected) networksToLoad++;
                 }
             });
+
+            if (footerInfo) {
+                if (networksToLoad > 0) {
+                    footerInfo.innerHTML = `<span class="to-load">${networksToLoad} network(s) will be loaded</span>`;
+                } else {
+                    footerInfo.textContent = '';
+                }
+            }
         }
 
         function positionDropdown(btn, dropdown) {
             const rect = btn.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const dropdownWidth = 320;
+
             dropdown.style.top = (rect.bottom + 4) + 'px';
-            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
-            dropdown.style.left = 'auto';
+
+            if (rect.right < dropdownWidth + 20) {
+                dropdown.style.left = Math.max(10, rect.left) + 'px';
+                dropdown.style.right = 'auto';
+            } else {
+                dropdown.style.right = Math.max(10, viewportWidth - rect.right) + 'px';
+                dropdown.style.left = 'auto';
+            }
 
             requestAnimationFrame(() => {
                 const dRect = dropdown.getBoundingClientRect();
@@ -1630,7 +1968,7 @@
         function initNetworkSelectors() {
             CONFIG.SECTIONS.forEach(s => {
                 const dropdown = document.getElementById(`${s.id}-dropdown`);
-                dropdown.innerHTML = buildDropdownHTML();
+                if (dropdown) dropdown.innerHTML = buildDropdownHTML(s.id);
             });
 
             document.querySelectorAll('.network-selector').forEach(sel => {
@@ -1644,6 +1982,8 @@
                     closeAllDropdowns();
 
                     if (!wasOpen) {
+                        dropdown.innerHTML = buildDropdownHTML(sectionId);
+                        reattachDropdownListeners(sectionId, dropdown);
                         state.sections[sectionId].pendingNetworks = [...state.sections[sectionId].networks];
                         updateDropdownUI(sectionId);
                         dropdown.classList.add('open');
@@ -1653,37 +1993,6 @@
                 });
 
                 dropdown.addEventListener('click', e => e.stopPropagation());
-
-                dropdown.querySelectorAll('.network-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const netId = item.dataset.net;
-                        if (!state.loadedNetworks.has(netId)) return;
-
-                        const pending = state.sections[sectionId].pendingNetworks;
-                        const idx = pending.indexOf(netId);
-                        if (idx > -1) pending.splice(idx, 1);
-                        else pending.push(netId);
-
-                        updateDropdownUI(sectionId);
-                    });
-                });
-
-                dropdown.querySelector('.select-loaded-btn').addEventListener('click', () => {
-                    state.sections[sectionId].pendingNetworks = [...state.loadedNetworks];
-                    updateDropdownUI(sectionId);
-                });
-
-                dropdown.querySelector('.cancel-btn').addEventListener('click', () => {
-                    closeAllDropdowns();
-                });
-
-                dropdown.querySelector('.apply-btn').addEventListener('click', () => {
-                    state.sections[sectionId].networks = state.sections[sectionId].pendingNetworks
-                        .filter(n => state.loadedNetworks.has(n));
-                    closeAllDropdowns();
-                    renderSection(sectionId);
-                    log(`[${sectionId}] Applied network filter: ${state.sections[sectionId].networks.join(', ')}`, 'info');
-                });
             });
 
             document.addEventListener('click', closeAllDropdowns);
@@ -1694,6 +2003,75 @@
                     positionDropdown(btn, dropdown);
                 });
             }, true);
+        }
+
+        function reattachDropdownListeners(sectionId, dropdown) {
+            dropdown.querySelectorAll('.network-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const netId = item.dataset.net;
+                    const pending = state.sections[sectionId].pendingNetworks;
+                    const idx = pending.indexOf(netId);
+                    if (idx > -1) {
+                        pending.splice(idx, 1);
+                    } else {
+                        pending.push(netId);
+                    }
+                    updateDropdownUI(sectionId);
+                });
+            });
+
+            dropdown.querySelector('.select-loaded-btn').addEventListener('click', () => {
+                state.sections[sectionId].pendingNetworks = [...state.loadedNetworks];
+                updateDropdownUI(sectionId);
+            });
+
+            dropdown.querySelector('.cancel-btn').addEventListener('click', () => {
+                closeAllDropdowns();
+            });
+
+            dropdown.querySelector('.apply-btn').addEventListener('click', async () => {
+                const sec = state.sections[sectionId];
+                const networksToLoad = sec.pendingNetworks.filter(n => !state.loadedNetworks.has(n));
+
+                closeAllDropdowns();
+
+                if (networksToLoad.length > 0) {
+                    await loadNetworksOnDemand(sectionId, networksToLoad);
+                }
+
+                sec.networks = sec.pendingNetworks.filter(n => state.loadedNetworks.has(n));
+                renderSection(sectionId);
+                updateHeaderStatus('', 'success');
+                log(`[${sectionId}] Applied network filter: ${sec.networks.join(', ')}`, 'info');
+            });
+        }
+
+        // ============================================
+        // ON-DEMAND NETWORK LOADING
+        // ============================================
+        async function loadNetworksOnDemand(sectionId, networks) {
+            if (networks.length === 0) return;
+
+            setSectionLoading(sectionId, true, `Loading ${networks.length} network(s)...`);
+            log(`[${sectionId}] Loading networks on-demand: ${networks.join(', ')}`, 'info');
+
+            try {
+                updateHeaderStatus(`Loading ${networks.join(', ')}...`, 'info', true);
+
+                const discovered = await discoverPools(networks, pct => {
+                    setSectionLoading(sectionId, true, `Loading networks: ${Math.round(pct)}%`);
+                });
+
+                discovered.forEach((pool, id) => state.pools.set(id, pool));
+                updateHeaderStatus('', 'success');
+                log(`[${sectionId}] Loaded ${discovered.size} pools from ${networks.length} networks`, 'success');
+
+            } catch (err) {
+                log(`[${sectionId}] Error loading networks: ${err.message}`, 'error');
+                updateHeaderStatus('Error loading networks', 'error');
+            } finally {
+                setSectionLoading(sectionId, false);
+            }
         }
 
         // ============================================
@@ -1712,10 +2090,12 @@
 
                         toggle.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
+
                         sec.timeframe = tf;
 
                         if (tf !== '24h') {
-                            setSectionLoading(sectionId, true, `Loading ${tf} data...`);
+                            const poolCount = getPoolsForSection(sectionId).length;
+                            setSectionLoading(sectionId, true, `Fetching ${CONFIG.TIMEFRAMES[tf].days}d volume for ${poolCount} pools...`);
                             await fetchOHLCVForSection(sectionId, tf);
                             setSectionLoading(sectionId, false);
                         }
@@ -1775,100 +2155,37 @@
                 sec.pendingNetworks = [...CONFIG.INITIAL_NETWORKS];
                 sec.timeframe = '24h';
                 sec.ohlcvCache = {};
-                setSectionLoading(s.id, true, 'Loading pools...');
+                setSectionLoading(s.id, true, 'Loading pools via GeckoTerminal...');
 
                 const toggle = document.querySelector(`.timeframe-toggle[data-section="${s.id}"]`);
-                toggle?.querySelectorAll('.tf-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.tf === '24h');
-                });
+                if (toggle) {
+                    toggle.querySelectorAll('.tf-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.tf === '24h');
+                    });
+                }
             });
 
             try {
-                log('Loading from Ethereum, Arbitrum, Base...', 'info');
-                updateStatus('Loading pools from initial networks...', 'info', true);
+                log('Loading from Ethereum, Arbitrum, Base via GeckoTerminal...', 'gecko');
+                updateHeaderStatus('Loading pools...', 'info', true);
 
                 const discovered = await discoverPools(CONFIG.INITIAL_NETWORKS, updateProgress);
-
                 discovered.forEach((pool, id) => state.pools.set(id, pool));
 
                 renderAllSections();
-
-                updateStatus(`Loaded ${state.pools.size} pools from ${state.loadedNetworks.size} networks`, 'success', false);
+                updateHeaderStatus('', 'success');
                 document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
 
                 log(`Initial load complete. ${state.pools.size} pools, ${state.apiCalls} API calls`, 'success');
-                updateLoadMoreBtn();
 
             } catch (err) {
                 log(`Load error: ${err.message}`, 'error');
-                updateStatus('Error loading data', 'error', false);
+                updateHeaderStatus('Error loading data', 'error');
             } finally {
                 state.isLoading = false;
                 refreshBtn.disabled = false;
                 updateProgress(0);
                 CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, false));
-            }
-        }
-
-        async function loadMoreNetworks() {
-            if (state.isLoading) return;
-
-            const remaining = CONFIG.ADDITIONAL_NETWORKS.filter(n => !state.loadedNetworks.has(n));
-            if (remaining.length === 0) return;
-
-            state.isLoading = true;
-
-            const btn = document.getElementById('load-more-btn');
-            btn.disabled = true;
-            btn.textContent = 'Loading...';
-
-            CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, true, 'Loading more networks...'));
-
-            try {
-                log(`Loading ${remaining.length} additional networks...`, 'info');
-                updateStatus(`Loading ${remaining.length} more networks...`, 'info', true);
-
-                const discovered = await discoverPools(remaining, updateProgress);
-
-                discovered.forEach((pool, id) => state.pools.set(id, pool));
-
-                CONFIG.SECTIONS.forEach(s => {
-                    state.sections[s.id].networks = [...state.loadedNetworks];
-                    state.sections[s.id].pendingNetworks = [...state.loadedNetworks];
-                });
-
-                renderAllSections();
-
-                updateStatus(`Loaded ${state.pools.size} pools from ${state.loadedNetworks.size} networks`, 'success', false);
-                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
-
-                log(`Additional networks loaded. ${state.pools.size} total pools`, 'success');
-                updateLoadMoreBtn();
-
-            } catch (err) {
-                log(`Load more error: ${err.message}`, 'error');
-                updateStatus('Error loading additional networks', 'error', false);
-            } finally {
-                state.isLoading = false;
-                btn.disabled = false;
-                btn.textContent = 'Load More Networks';
-                updateProgress(0);
-                CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, false));
-            }
-        }
-
-        function updateLoadMoreBtn() {
-            const remaining = CONFIG.ADDITIONAL_NETWORKS.filter(n => !state.loadedNetworks.has(n));
-            const btn = document.getElementById('load-more-btn');
-            const info = document.getElementById('load-more-info');
-
-            if (remaining.length > 0) {
-                btn.classList.remove('hidden');
-                info.classList.remove('hidden');
-                info.textContent = `${remaining.length} more networks available`;
-            } else {
-                btn.classList.add('hidden');
-                info.classList.add('hidden');
             }
         }
 
@@ -1882,7 +2199,6 @@
             initSorting();
 
             document.getElementById('refresh-btn').addEventListener('click', loadInitialData);
-            document.getElementById('load-more-btn').addEventListener('click', loadMoreNetworks);
 
             document.getElementById('debug-toggle').addEventListener('click', () => {
                 document.getElementById('debug-section').classList.toggle('hidden');
