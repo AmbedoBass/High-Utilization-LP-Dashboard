@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Utilization LP Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --bg-color-lighter: #111111;
+            --surface-color: #1a1a1a;
+            --surface-color-alt: #141414;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #888888;
+            --border-color: #2a2a2a;
+            --accent-color: #666666;
+            --hover-bg-color: #222222;
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --error-color: #f87171;
+            --btc-color: #f7931a;
+            --eth-color: #87CEEB;
+            --usdc-color: #4A90E2;
+            --usdt-color: #5CB85C;
+            --dai-color: #D4A76A;
+            --apr-low: #1a5f2a;
+            --apr-moderate: #2d8a3e;
+            --apr-good: #48bb5c;
+            --apr-excellent: #4ade80;
+            --util-low: #4a3a6b;
+            --util-moderate: #7c5dac;
+            --util-high: #a78bfa;
+            --util-excellent: #c4b5fd;
+            --section-bg: #0f0f0f;
+            --section-border: #2a2a2a;
+            --section-header-bg: #151515;
+            --section-th-bg: #121212;
+            --link-color: #999999;
+            --link-color-hover: #cccccc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-color-lighter);
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-text-color);
+            margin-bottom: 0.4rem;
+        }
+
+        header p {
+            color: var(--secondary-text-color);
+            font-size: 0.9rem;
+        }
+
+        main {
+            padding: 1.25rem;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        footer {
+            padding: 0.75rem 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--secondary-text-color);
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: #333333;
+            color: #fff;
+            border: 1px solid #444444;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn:hover {
+            background-color: #444444;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background-color: #222222;
+            color: var(--secondary-text-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background-color: var(--util-moderate);
+            border-color: var(--util-high);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--util-high);
+        }
+
+        .load-more-info {
+            font-size: 0.75rem;
+            color: var(--secondary-text-color);
+        }
+
+        #last-updated {
+            color: var(--secondary-text-color);
+            font-size: 0.8rem;
+        }
+
+        #status-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding: 0.6rem 1rem;
+            background-color: var(--surface-color);
+            border-radius: 3px;
+            border-left: 3px solid var(--accent-color);
+            font-size: 0.85rem;
+        }
+
+        #status-bar.success { border-left-color: var(--success-color); }
+        #status-bar.error { border-left-color: var(--error-color); }
+        #status-bar.warning { border-left-color: var(--warning-color); }
+        #status-bar.info { border-left-color: var(--accent-color); }
+
+        #status-message { flex-grow: 1; }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-text-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .hidden { display: none !important; }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #progress-container {
+            width: 100%;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--util-moderate), var(--util-excellent));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        #dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            min-height: 500px;
+        }
+
+        #stablecoin-section-wrapper {
+            margin-top: 1.25rem;
+        }
+
+        .pair-section {
+            background-color: var(--section-bg);
+            border: 1px solid var(--section-border);
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            min-height: 320px;
+            max-height: 450px;
+            position: relative;
+        }
+
+        .pair-section.full-width {
+            max-height: 380px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background-color: var(--section-header-bg);
+            border-bottom: 1px solid var(--section-border);
+            flex-shrink: 0;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .pool-count {
+            font-size: 0.85rem;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        .section-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        /* Timeframe Toggle */
+        .timeframe-toggle {
+            display: flex;
+            align-items: center;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .tf-btn {
+            background-color: transparent;
+            color: var(--secondary-text-color);
+            border: none;
+            padding: 0.3rem 0.55rem;
+            border-radius: 2px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .tf-btn:hover {
+            background-color: var(--hover-bg-color);
+            color: var(--primary-text-color);
+        }
+
+        .tf-btn.active {
+            background-color: var(--util-moderate);
+            color: #fff;
+        }
+
+        /* Network Selector */
+        .network-selector {
+            position: relative;
+        }
+
+        .network-btn {
+            background-color: var(--surface-color);
+            color: var(--secondary-text-color);
+            border: 1px solid var(--border-color);
+            padding: 0.35rem 0.65rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .network-btn:hover {
+            background-color: var(--hover-bg-color);
+            color: var(--primary-text-color);
+            border-color: #444;
+        }
+
+        .network-btn.open {
+            border-color: var(--util-moderate);
+        }
+
+        .network-badge {
+            background-color: var(--util-moderate);
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .network-arrow {
+            font-size: 0.55rem;
+            transition: transform 0.2s ease;
+        }
+
+        .network-btn.open .network-arrow {
+            transform: rotate(180deg);
+        }
+
+        .network-dropdown {
+            position: fixed;
+            width: 300px;
+            max-height: 600px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+        }
+
+        .network-dropdown.open {
+            display: flex;
+        }
+
+        .dropdown-header {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.7rem;
+            color: var(--secondary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .dropdown-header button {
+            background: none;
+            border: none;
+            color: var(--util-high);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .dropdown-header button:hover {
+            text-decoration: underline;
+        }
+
+        .dropdown-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.4rem 0;
+        }
+
+        .network-group-label {
+            font-size: 0.65rem;
+            color: var(--secondary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.5rem 0.75rem 0.25rem;
+            opacity: 0.7;
+        }
+
+        .network-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .network-item:hover {
+            background-color: var(--hover-bg-color);
+        }
+
+        .network-item.selected {
+            background-color: rgba(167, 139, 250, 0.1);
+        }
+
+        .network-item.not-loaded {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .network-item.not-loaded:hover {
+            background-color: transparent;
+        }
+
+        .network-checkbox {
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: #fff;
+            background-color: var(--bg-color);
+            flex-shrink: 0;
+        }
+
+        .network-item.selected .network-checkbox {
+            background-color: var(--util-moderate);
+            border-color: var(--util-high);
+        }
+
+        .network-name {
+            font-size: 0.8rem;
+            color: var(--primary-text-color);
+            flex: 1;
+        }
+
+        .network-tag {
+            font-size: 0.6rem;
+            color: var(--util-high);
+            background-color: rgba(167, 139, 250, 0.15);
+            padding: 0.1rem 0.3rem;
+            border-radius: 2px;
+        }
+
+        .not-loaded-tag {
+            font-size: 0.6rem;
+            color: var(--warning-color);
+            background-color: rgba(251, 191, 36, 0.15);
+            padding: 0.1rem 0.3rem;
+            border-radius: 2px;
+        }
+
+        .dropdown-footer {
+            padding: 0.6rem 0.75rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .dropdown-footer .btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Section Loading Overlay */
+        .section-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(10, 10, 10, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .section-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .section-overlay .spinner {
+            width: 28px;
+            height: 28px;
+            border-width: 3px;
+            border-top-color: var(--util-high);
+            margin-bottom: 0.75rem;
+        }
+
+        .section-overlay-text {
+            font-size: 0.85rem;
+            color: var(--secondary-text-color);
+        }
+
+        .section-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
+        }
+
+        .pool-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .pool-table th,
+        .pool-table td {
+            padding: 0.55rem 0.7rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .pool-table th {
+            background-color: var(--section-th-bg);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.73rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--secondary-text-color);
+        }
+
+        .pool-table th:hover {
+            color: var(--primary-text-color);
+        }
+
+        .pool-table th[data-sort]::after {
+            content: ' ⇅';
+            opacity: 0.4;
+            font-size: 0.65em;
+        }
+
+        .pool-table th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        .pool-table th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        .pool-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .pool-table tbody tr:hover {
+            background-color: var(--hover-bg-color);
+        }
+
+        .pool-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pool-link,
+        .explorer-link {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.15s ease;
+        }
+
+        .pool-link:hover,
+        .explorer-link:hover {
+            color: var(--link-color-hover);
+            text-decoration: underline;
+        }
+
+        .pool-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .explorer-link {
+            font-size: 0.75rem;
+            opacity: 0.5;
+        }
+
+        .explorer-link:hover {
+            opacity: 1;
+        }
+
+        .token-btc { color: var(--btc-color); font-weight: 600; }
+        .token-eth { color: var(--eth-color); font-weight: 600; }
+        .token-usdc { color: var(--usdc-color); font-weight: 600; }
+        .token-usdt { color: var(--usdt-color); font-weight: 600; }
+        .token-dai { color: var(--dai-color); font-weight: 600; }
+
+        .protocol-badge {
+            display: inline-block;
+            padding: 0.1rem 0.35rem;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background-color: rgba(255, 255, 255, 0.08);
+            max-width: 85px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fee-badge {
+            display: inline-block;
+            padding: 0.12rem 0.35rem;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--secondary-text-color);
+        }
+
+        .fee-badge.fee-low {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: var(--success-color);
+        }
+
+        .fee-badge.fee-medium {
+            background-color: rgba(251, 191, 36, 0.2);
+            color: var(--warning-color);
+        }
+
+        .fee-badge.fee-high {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: var(--error-color);
+        }
+
+        .liquidity-cell {
+            position: relative;
+            font-weight: 500;
+        }
+
+        .liquidity-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            opacity: 0.15;
+            border-radius: 1px;
+            z-index: 0;
+        }
+
+        .liquidity-value {
+            position: relative;
+            z-index: 1;
+        }
+
+        .apr-value { font-weight: 600; }
+        .apr-excellent { color: var(--apr-excellent); }
+        .apr-good { color: var(--apr-good); }
+        .apr-moderate { color: var(--apr-moderate); }
+        .apr-low { color: var(--apr-low); }
+
+        .utilization-value { font-weight: 600; }
+        .utilization-excellent { color: var(--util-excellent); }
+        .utilization-high { color: var(--util-high); }
+        .utilization-moderate { color: var(--util-moderate); }
+        .utilization-low { color: var(--util-low); }
+
+        .no-data {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--secondary-text-color);
+            font-size: 0.9rem;
+        }
+
+        .tf-indicator {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            margin-left: 0.2rem;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-text-color);
+        }
+
+        #debug-section {
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .debug-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .debug-toggle {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--secondary-text-color);
+            padding: 0.3rem 0.6rem;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .debug-toggle:hover {
+            background-color: var(--hover-bg-color);
+            color: var(--primary-text-color);
+        }
+
+        #debug-log {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 1rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.72rem;
+            max-height: 280px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .log-error { color: var(--error-color); }
+        .log-warn { color: var(--warning-color); }
+        .log-success { color: var(--success-color); }
+        .log-info { color: var(--secondary-text-color); }
+
+        @media (max-width: 1200px) {
+            #dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header { padding: 1rem; }
+            header h1 { font-size: 1.3rem; }
+            main { padding: 0.75rem; }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .section-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .pair-section {
+                min-height: 280px;
+                max-height: 400px;
+            }
+
+            .pool-table th,
+            .pool-table td {
+                padding: 0.45rem 0.5rem;
+                font-size: 0.78rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>High Utilization LP Dashboard</h1>
+        <p>Find heavily utilized LPs via GeckoTerminal. Ranks pools by Utilization % (24h Volume ÷ Liquidity × 100). APR estimated from volume × fee.</p>
+    </header>
+
+    <main>
+        <div id="controls">
+            <div class="controls-left">
+                <button id="refresh-btn" class="btn">Refresh Data</button>
+                <button id="load-more-btn" class="btn btn-primary hidden">Load More Networks</button>
+                <span id="load-more-info" class="load-more-info hidden"></span>
+            </div>
+            <span id="last-updated">Loading...</span>
+        </div>
+
+        <div id="status-bar" class="info">
+            <span id="status-message">Initializing...</span>
+            <div id="loading-spinner" class="spinner hidden"></div>
+        </div>
+
+        <div id="progress-container" class="hidden">
+            <div id="progress-bar"></div>
+        </div>
+
+        <div id="dashboard-grid"></div>
+        <div id="stablecoin-section-wrapper"></div>
+
+        <div id="debug-section" class="hidden">
+            <div class="debug-header">
+                <span style="font-size: 0.75rem; color: var(--secondary-text-color);">Debug Log</span>
+                <button id="clear-debug" class="debug-toggle">Clear</button>
+            </div>
+            <div id="debug-log"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>
+            Data from <a href="https://www.geckoterminal.com" target="_blank" style="color: var(--link-color);">GeckoTerminal API</a>.
+            APR estimates based on volume and fees. Always DYOR.
+            <button id="debug-toggle" class="debug-toggle" style="margin-left: 1rem;">Toggle Debug</button>
+        </p>
+    </footer>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            API_BASE: 'https://api.geckoterminal.com/api/v2',
+            RATE_LIMIT_MS: 2200,
+            MAX_RETRIES: 3,
+            RETRY_DELAY_MS: 3000,
+            TIMEOUT_MS: 25000,
+            MIN_LIQUIDITY: 50000,
+            MIN_VOLUME_24H: 1000,
+            DEFAULT_FEE: 0.3,
+            MAX_OHLCV_FETCHES: 10,
+
+            INITIAL_NETWORKS: ['eth', 'arbitrum', 'base'],
+            ADDITIONAL_NETWORKS: ['optimism', 'polygon_pos', 'bsc', 'avax', 'zksync', 'linea', 'scroll', 'blast', 'mode', 'mantle', 'manta', 'fantom', 'gnosis'],
+
+            NETWORK_GROUPS: {
+                'L1 Networks': [
+                    { id: 'eth', name: 'Ethereum', initial: true },
+                    { id: 'bsc', name: 'BSC' },
+                    { id: 'avax', name: 'Avalanche' },
+                    { id: 'fantom', name: 'Fantom' },
+                    { id: 'gnosis', name: 'Gnosis' }
+                ],
+                'Ethereum L2s': [
+                    { id: 'arbitrum', name: 'Arbitrum', initial: true },
+                    { id: 'base', name: 'Base', initial: true },
+                    { id: 'optimism', name: 'Optimism' },
+                    { id: 'zksync', name: 'zkSync' },
+                    { id: 'linea', name: 'Linea' },
+                    { id: 'scroll', name: 'Scroll' },
+                    { id: 'blast', name: 'Blast' },
+                    { id: 'mode', name: 'Mode' },
+                    { id: 'manta', name: 'Manta' }
+                ],
+                'Other': [
+                    { id: 'polygon_pos', name: 'Polygon' },
+                    { id: 'mantle', name: 'Mantle' }
+                ]
+            },
+
+            NETWORK_NAMES: {
+                eth: 'Ethereum', arbitrum: 'Arbitrum', optimism: 'Optimism', base: 'Base',
+                polygon_pos: 'Polygon', zksync: 'zkSync', linea: 'Linea', scroll: 'Scroll',
+                blast: 'Blast', bsc: 'BSC', avax: 'Avalanche', fantom: 'Fantom',
+                gnosis: 'Gnosis', mode: 'Mode', mantle: 'Mantle', manta: 'Manta'
+            },
+
+            EXPLORERS: {
+                eth: 'https://etherscan.io/address/',
+                arbitrum: 'https://arbiscan.io/address/',
+                optimism: 'https://optimistic.etherscan.io/address/',
+                base: 'https://basescan.org/address/',
+                polygon_pos: 'https://polygonscan.com/address/',
+                zksync: 'https://explorer.zksync.io/address/',
+                linea: 'https://lineascan.build/address/',
+                scroll: 'https://scrollscan.com/address/',
+                blast: 'https://blastscan.io/address/',
+                bsc: 'https://bscscan.com/address/',
+                avax: 'https://snowtrace.io/address/',
+                fantom: 'https://ftmscan.com/address/',
+                gnosis: 'https://gnosisscan.io/address/',
+                mode: 'https://explorer.mode.network/address/',
+                mantle: 'https://explorer.mantle.xyz/address/',
+                manta: 'https://pacific-explorer.manta.network/address/'
+            },
+
+            SEARCHES: [
+                'WBTC USDC', 'WBTC USDT', 'cbBTC USDC', 'cbBTC USDT', 'tBTC USDC',
+                'WETH USDC', 'WETH USDT', 'ETH USDC', 'ETH USDT', 'WETH DAI',
+                'WBTC WETH', 'WBTC ETH', 'cbBTC WETH',
+                'WBTC cbBTC', 'WETH stETH', 'wstETH ETH', 'WETH rETH', 'rETH wstETH',
+                'USDC USDT', 'USDC DAI', 'USDT DAI', 'GHO USDC', 'GHO USDT'
+            ],
+
+            TIMEFRAMES: {
+                '24h': { days: 1, label: '24h' },
+                '7d': { days: 7, label: '7d' },
+                '30d': { days: 30, label: '30d' },
+                '1y': { days: 365, label: '1y' }
+            },
+
+            SECTIONS: [
+                { id: 'btc-stable', title: '<span class="token-btc">BTC</span> / Stablecoin', grid: true },
+                { id: 'eth-stable', title: '<span class="token-eth">ETH</span> / Stablecoin', grid: true },
+                { id: 'btc-eth', title: '<span class="token-btc">BTC</span> / <span class="token-eth">ETH</span>', grid: true },
+                { id: 'wrapped', title: 'Wrapped Twins', grid: true },
+                { id: 'stable-stable', title: 'Stablecoin Pairs', grid: false }
+            ],
+
+            ASSETS: {
+                BTC: ['btc', 'wbtc', 'cbbtc', 'tbtc', 'renbtc', 'sbtc', 'hbtc', 'wbtce', 'btcb', 'obtc', 'pbtc', 'ibtc', 'fbtc', 'lbtc', 'kbtc', 'ebtc', 'solvbtc', 'unibtc', 'pumpbtc', 'dlcbtc', 'stbtc', 'mbtc', 'xbtc', 'abtc', 'nbtc', 'dbtc', 'zbtc', 'ubtc', 'hemibtc', 'vbtc', 'yybtc', 'bbtc', 'gbtc', 'qbtc'],
+                ETH: ['eth', 'weth', 'steth', 'wsteth', 'reth', 'cbeth', 'wethe', 'ethb', 'seth', 'meth', 'oeth', 'frxeth', 'sfrxeth', 'sweth', 'ankreth', 'eeth', 'weeth', 'ezeth', 'rseth', 'pxeth', 'unieth', 'ethx', 'insteth', 'neth', 'oseth', 'mpeth', 'ineth', 'wbeth', 'rsweth', 'saeth', 'apxeth', 'ueth', 'wheth', 'zeth', 'heth', 'veth', 'aeth', 'deth', 'yeth', 'yyeth', 'geth', 'qeth'],
+                STABLE: ['usdc', 'usdt', 'dai', 'usdbc', 'frax', 'lusd', 'usds', 'crvusd', 'tusd', 'busd', 'gusd', 'usdp', 'usdd', 'pyusd', 'eusd', 'gho', 'mkusd', 'dola', 'susd', 'usd+', 'usdb', 'usdm', 'usde', 'usd0', 'fdusd', 'eur', 'eurt', 'eurc', 'ageur', 'ceur', 'usdk', 'usdn', 'mimatic', 'mai', 'alusd', 'mim', 'susdv2', 'susde', 'ousdt', 'ousdc', 'odai', 'wusdc', 'wusdt', 'wdai', 'usdce', 'usdtce', 'daie']
+            },
+
+            EXCLUDED: new Set(['btcbull', 'btcbear', 'ethbull', 'ethbear', 'btc2x', 'eth2x', 'btc3x', 'eth3x', 'btcup', 'btcdown', 'ethup', 'ethdown', 'ethfi', 'etherfi', 'btcpay', 'ethpay', 'btcdao', 'ethdao', 'btcix', 'ethix', 'methane', 'methanol', 'ethanol', 'ethernet', 'synthesis', 'synthetic', 'aesthetics', 'bethel', 'beth', 'elizabeth', 'macbeth']),
+
+            STABLE_PAIRS: new Set(['usdc', 'usdt', 'gho', 'dai', 'usdbc'])
+        };
+
+        // Build asset lookup
+        const ASSET_MAP = {};
+        Object.entries(CONFIG.ASSETS).forEach(([cls, tokens]) => {
+            tokens.forEach(t => ASSET_MAP[t.toLowerCase().replace(/\./g, '')] = cls);
+        });
+
+        // ============================================
+        // STATE
+        // ============================================
+        const state = {
+            pools: new Map(),
+            loadedNetworks: new Set(),
+            isLoading: false,
+            debugLogs: [],
+            apiCalls: 0,
+            lastApiCall: 0,
+            sections: {}
+        };
+
+        CONFIG.SECTIONS.forEach(s => {
+            state.sections[s.id] = {
+                networks: [...CONFIG.INITIAL_NETWORKS],
+                pendingNetworks: [...CONFIG.INITIAL_NETWORKS],
+                timeframe: '24h',
+                ohlcvCache: {},
+                sortField: 'utilization',
+                sortDir: 'desc'
+            };
+        });
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        function log(msg, type = 'info') {
+            const ts = new Date().toLocaleTimeString();
+            state.debugLogs.push({ ts, type, msg });
+            if (state.debugLogs.length > 500) state.debugLogs = state.debugLogs.slice(-400);
+            console.log(`[${ts}] [${type.toUpperCase()}] ${msg}`);
+            renderDebugLog();
+        }
+
+        function renderDebugLog() {
+            const el = document.getElementById('debug-log');
+            if (el) {
+                el.innerHTML = state.debugLogs.map(l => 
+                    `<div class="log-${l.type}">[${l.ts}] ${l.msg}</div>`
+                ).join('');
+                el.scrollTop = el.scrollHeight;
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function formatUsd(val) {
+            if (val >= 1e9) return '$' + (val / 1e9).toFixed(2) + 'B';
+            if (val >= 1e6) return '$' + (val / 1e6).toFixed(2) + 'M';
+            if (val >= 1e3) return '$' + (val / 1e3).toFixed(1) + 'K';
+            return '$' + val.toFixed(0);
+        }
+
+        function updateStatus(msg, type = 'info', loading = false) {
+            document.getElementById('status-message').textContent = msg;
+            document.getElementById('status-bar').className = type;
+            document.getElementById('loading-spinner').classList.toggle('hidden', !loading);
+        }
+
+        function updateProgress(pct) {
+            const container = document.getElementById('progress-container');
+            const bar = document.getElementById('progress-bar');
+            if (pct > 0 && pct < 100) {
+                container.classList.remove('hidden');
+                bar.style.width = pct + '%';
+            } else {
+                container.classList.add('hidden');
+                bar.style.width = '0%';
+            }
+        }
+
+        // ============================================
+        // API CLIENT
+        // ============================================
+        async function apiCall(endpoint, params = {}) {
+            const now = Date.now();
+            const elapsed = now - state.lastApiCall;
+            if (elapsed < CONFIG.RATE_LIMIT_MS) {
+                await sleep(CONFIG.RATE_LIMIT_MS - elapsed);
+            }
+            state.lastApiCall = Date.now();
+            state.apiCalls++;
+
+            const url = new URL(CONFIG.API_BASE + endpoint);
+            Object.entries(params).forEach(([k, v]) => {
+                if (v != null) url.searchParams.set(k, String(v));
+            });
+
+            for (let attempt = 1; attempt <= CONFIG.MAX_RETRIES; attempt++) {
+                try {
+                    const ctrl = new AbortController();
+                    const timeout = setTimeout(() => ctrl.abort(), CONFIG.TIMEOUT_MS);
+                    
+                    const res = await fetch(url.toString(), {
+                        signal: ctrl.signal,
+                        headers: { Accept: 'application/json' }
+                    });
+                    
+                    clearTimeout(timeout);
+
+                    if (res.status === 429) {
+                        log('Rate limited, waiting 10s...', 'warn');
+                        await sleep(10000);
+                        continue;
+                    }
+
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return await res.json();
+                } catch (err) {
+                    log(`API error (${attempt}/${CONFIG.MAX_RETRIES}): ${err.message}`, 'warn');
+                    if (attempt < CONFIG.MAX_RETRIES) {
+                        await sleep(CONFIG.RETRY_DELAY_MS * attempt);
+                    }
+                }
+            }
+            return null;
+        }
+
+        async function searchPools(query, network) {
+            const params = { query };
+            if (network) params.network = network;
+            const res = await apiCall('/search/pools', params);
+            return res ? { pools: res.data || [], included: res.included || [] } : { pools: [], included: [] };
+        }
+
+        async function fetchTopPools(network) {
+            const res = await apiCall(`/networks/${network}/pools`, { page: 1, include: 'base_token,quote_token,dex' });
+            return res ? { pools: res.data || [], included: res.included || [] } : { pools: [], included: [] };
+        }
+
+        async function fetchOHLCV(network, address, days) {
+            const res = await apiCall(`/networks/${network}/pools/${address}/ohlcv/day`, { aggregate: 1, limit: days, currency: 'usd' });
+            if (!res) return { volume: 0 };
+            const list = res.data?.attributes?.ohlcv_list || [];
+            let vol = 0;
+            list.forEach(c => { if (c && c[5]) vol += parseFloat(c[5]) || 0; });
+            return { volume: vol };
+        }
+
+        // ============================================
+        // POOL PROCESSING
+        // ============================================
+        function normalizeSymbol(sym) {
+            return sym ? sym.toLowerCase().replace(/\./g, '').trim() : '';
+        }
+
+        function getAssetClass(sym) {
+            if (!sym) return null;
+            const n = normalizeSymbol(sym);
+            if (CONFIG.EXCLUDED.has(n)) return null;
+            return ASSET_MAP[n] || null;
+        }
+
+        function isStablePair(sym) {
+            return CONFIG.STABLE_PAIRS.has(normalizeSymbol(sym));
+        }
+
+        function getPairType(baseAsset, quoteAsset, baseSym, quoteSym) {
+            if (!baseAsset || !quoteAsset) return null;
+
+            if (isStablePair(baseSym) && isStablePair(quoteSym)) {
+                if (normalizeSymbol(baseSym) !== normalizeSymbol(quoteSym)) {
+                    return 'stable-stable';
+                }
+            }
+
+            if (baseAsset === quoteAsset) {
+                return (baseAsset === 'BTC' || baseAsset === 'ETH') ? 'wrapped' : null;
+            }
+
+            const sorted = [baseAsset, quoteAsset].sort().join('-');
+            if (sorted === 'BTC-STABLE') return 'btc-stable';
+            if (sorted === 'ETH-STABLE') return 'eth-stable';
+            if (sorted === 'BTC-ETH') return 'btc-eth';
+            return null;
+        }
+
+        function parsePoolName(name) {
+            if (!name) return null;
+            const clean = name.replace(/\s*\d+\.?\d*%?\s*$/i, '').replace(/\s*\d+bps\s*$/i, '').trim();
+            for (const sep of [' / ', '/', ' - ', '-']) {
+                const parts = clean.split(sep).filter(p => p.trim());
+                if (parts.length >= 2) {
+                    return { base: parts[0].trim(), quote: parts[1].trim() };
+                }
+            }
+            return null;
+        }
+
+        function extractFee(name) {
+            if (!name) return null;
+            const pct = name.match(/(\d+\.?\d*)\s*%\s*$/);
+            if (pct) {
+                const f = parseFloat(pct[1]);
+                if (f > 0 && f < 10) return f;
+            }
+            const bps = name.match(/(\d+)\s*bps/i);
+            if (bps) return parseFloat(bps[1]) / 100;
+            return null;
+        }
+
+        function normalizePool(pool, included) {
+            const attr = pool.attributes || {};
+            const rels = pool.relationships || {};
+
+            const networkId = pool.id?.split('_')[0];
+            const address = attr.address;
+            if (!networkId || !address) return null;
+
+            const lookup = { tokens: {}, dexes: {} };
+            (included || []).forEach(item => {
+                if (item.type === 'token') lookup.tokens[item.id] = item.attributes;
+                if (item.type === 'dex') lookup.dexes[item.id] = item.attributes;
+            });
+
+            let baseSym = lookup.tokens[rels.base_token?.data?.id]?.symbol;
+            let quoteSym = lookup.tokens[rels.quote_token?.data?.id]?.symbol;
+
+            if (!baseSym || !quoteSym) {
+                const parsed = parsePoolName(attr.name);
+                if (parsed) {
+                    baseSym = baseSym || parsed.base;
+                    quoteSym = quoteSym || parsed.quote;
+                }
+            }
+
+            if (!baseSym || !quoteSym) return null;
+            if (CONFIG.EXCLUDED.has(normalizeSymbol(baseSym)) || CONFIG.EXCLUDED.has(normalizeSymbol(quoteSym))) return null;
+
+            const baseAsset = getAssetClass(baseSym);
+            const quoteAsset = getAssetClass(quoteSym);
+            if (!baseAsset && !quoteAsset) return null;
+
+            const pairType = getPairType(baseAsset, quoteAsset, baseSym, quoteSym);
+            if (!pairType) return null;
+
+            const liquidity = parseFloat(attr.reserve_in_usd) || 0;
+            const volume24h = parseFloat(attr.volume_usd?.h24) || 0;
+            const fee = extractFee(attr.name) || CONFIG.DEFAULT_FEE;
+
+            let protocol = 'Unknown';
+            const dexId = rels.dex?.data?.id;
+            if (dexId && lookup.dexes[dexId]) {
+                protocol = lookup.dexes[dexId].name || dexId;
+            } else if (dexId) {
+                protocol = dexId.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+            }
+
+            return {
+                id: pool.id,
+                name: attr.name || `${baseSym}/${quoteSym}`,
+                baseSym,
+                quoteSym,
+                baseAsset,
+                quoteAsset,
+                pairType,
+                liquidity,
+                volume24h,
+                volumeData: { '24h': volume24h },
+                fee,
+                chain: CONFIG.NETWORK_NAMES[networkId] || networkId,
+                chainId: networkId,
+                protocol,
+                address,
+                poolUrl: `https://www.geckoterminal.com/${networkId}/pools/${address}`,
+                explorerUrl: CONFIG.EXPLORERS[networkId] ? CONFIG.EXPLORERS[networkId] + address : ''
+            };
+        }
+
+        // ============================================
+        // DATA FETCHING
+        // ============================================
+        async function discoverPools(networks, onProgress) {
+            const discovered = new Map();
+            let step = 0;
+            const total = CONFIG.SEARCHES.length + networks.length;
+
+            for (const search of CONFIG.SEARCHES) {
+                for (const net of networks) {
+                    if (state.loadedNetworks.has(net)) continue;
+                    const result = await searchPools(search, net);
+                    result.pools.forEach(p => {
+                        if (!discovered.has(p.id) && !state.pools.has(p.id)) {
+                            const norm = normalizePool(p, result.included);
+                            if (norm) discovered.set(p.id, norm);
+                        }
+                    });
+                }
+                step++;
+                onProgress?.((step / total) * 100);
+            }
+
+            for (const net of networks) {
+                if (state.loadedNetworks.has(net)) { step++; continue; }
+                const result = await fetchTopPools(net);
+                result.pools.forEach(p => {
+                    const norm = normalizePool(p, result.included);
+                    if (norm && !discovered.has(norm.id) && !state.pools.has(norm.id)) {
+                        discovered.set(norm.id, norm);
+                    }
+                });
+                state.loadedNetworks.add(net);
+                step++;
+                onProgress?.((step / total) * 100);
+            }
+
+            return discovered;
+        }
+
+        // ============================================
+        // FILTERING & SORTING
+        // ============================================
+        function getPoolsForSection(sectionId) {
+            const sec = state.sections[sectionId];
+            const pools = [];
+
+            state.pools.forEach(pool => {
+                if (pool.pairType !== sectionId) return;
+                if (!sec.networks.includes(pool.chainId)) return;
+                if (pool.liquidity < CONFIG.MIN_LIQUIDITY) return;
+                if (pool.volume24h < CONFIG.MIN_VOLUME_24H) return;
+                pools.push({ ...pool });
+            });
+
+            return pools;
+        }
+
+        function calculateMetrics(pool, timeframe) {
+            const days = CONFIG.TIMEFRAMES[timeframe].days;
+            let displayVol = pool.volumeData[timeframe];
+            let estimated = false;
+
+            if (displayVol == null) {
+                displayVol = pool.volume24h * days;
+                estimated = true;
+            }
+
+            pool.displayVolume = displayVol;
+            pool.volumeEstimated = estimated;
+            pool.utilization = pool.liquidity > 0 ? pool.volume24h / pool.liquidity : 0;
+
+            if (pool.liquidity > 0) {
+                const dailyVol = displayVol / days;
+                const dailyFee = dailyVol * (pool.fee / 100);
+                pool.apr = (dailyFee * 365 / pool.liquidity) * 100;
+            } else {
+                pool.apr = 0;
+            }
+
+            return pool;
+        }
+
+        function sortPools(pools, field, dir) {
+            return pools.sort((a, b) => {
+                let av = a[field], bv = b[field];
+                if (typeof av === 'string') av = av.toLowerCase();
+                if (typeof bv === 'string') bv = bv.toLowerCase();
+                if (av == null) av = dir === 'asc' ? Infinity : -Infinity;
+                if (bv == null) bv = dir === 'asc' ? Infinity : -Infinity;
+                return dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+            });
+        }
+
+        // ============================================
+        // OHLCV FETCHING
+        // ============================================
+        async function fetchOHLCVForSection(sectionId, timeframe) {
+            if (timeframe === '24h') return;
+
+            const sec = state.sections[sectionId];
+            const pools = getPoolsForSection(sectionId).slice(0, CONFIG.MAX_OHLCV_FETCHES);
+            const days = CONFIG.TIMEFRAMES[timeframe].days;
+
+            for (const pool of pools) {
+                const key = `${pool.id}_${timeframe}`;
+                if (sec.ohlcvCache[key] != null) {
+                    const cached = state.pools.get(pool.id);
+                    if (cached) cached.volumeData[timeframe] = sec.ohlcvCache[key];
+                } else {
+                    const result = await fetchOHLCV(pool.chainId, pool.address, days);
+                    const vol = result.volume > 0 ? result.volume : pool.volume24h * days;
+                    sec.ohlcvCache[key] = vol;
+                    const cached = state.pools.get(pool.id);
+                    if (cached) cached.volumeData[timeframe] = vol;
+                }
+            }
+        }
+
+        // ============================================
+        // RENDERING
+        // ============================================
+        function formatToken(sym) {
+            if (!sym) return '';
+            const n = normalizeSymbol(sym);
+            const upper = sym.toUpperCase();
+
+            const tokenColors = {
+                btc: 'token-btc', wbtc: 'token-btc', cbbtc: 'token-btc', tbtc: 'token-btc',
+                eth: 'token-eth', weth: 'token-eth', steth: 'token-eth', wsteth: 'token-eth', reth: 'token-eth', cbeth: 'token-eth', weeth: 'token-eth',
+                usdc: 'token-usdc', usdce: 'token-usdc',
+                usdt: 'token-usdt', usdtce: 'token-usdt',
+                dai: 'token-dai', daie: 'token-dai'
+            };
+
+            const cls = tokenColors[n];
+            if (cls) return `<span class="${cls}">${escapeHtml(upper)}</span>`;
+
+            const asset = getAssetClass(sym);
+            if (asset === 'BTC') return `<span class="token-btc">${escapeHtml(upper)}</span>`;
+            if (asset === 'ETH') return `<span class="token-eth">${escapeHtml(upper)}</span>`;
+            return escapeHtml(upper);
+        }
+
+        function colorizePoolName(name) {
+            if (!name) return '';
+            const parts = name.split(/(\s*[\/\-]\s*)/);
+            return parts.map(p => {
+                const t = p.trim();
+                if (/^^[\/\-\s]+$/.test(p)) return escapeHtml(p);
+                if (/^^\d+\.?\d*%?$/.test(t)) return `<span style="opacity:0.6">${escapeHtml(t)}</span>`;
+                return formatToken(t);
+            }).join('');
+        }
+
+        function getUtilClass(u) {
+            const p = u * 100;
+            if (p >= 50) return 'utilization-excellent';
+            if (p >= 20) return 'utilization-high';
+            if (p >= 5) return 'utilization-moderate';
+            return 'utilization-low';
+        }
+
+        function getAprClass(apr) {
+            if (apr >= 50) return 'apr-excellent';
+            if (apr >= 20) return 'apr-good';
+            if (apr >= 5) return 'apr-moderate';
+            return 'apr-low';
+        }
+
+        function getFeeClass(fee) {
+            if (fee <= 0.05) return 'fee-low';
+            if (fee <= 0.3) return 'fee-medium';
+            return 'fee-high';
+        }
+
+        function renderPoolRow(pool, tf) {
+            const liqPct = Math.min(100, Math.max(0, (Math.log10(Math.max(pool.liquidity, CONFIG.MIN_LIQUIDITY)) - Math.log10(CONFIG.MIN_LIQUIDITY)) / (Math.log10(500000000) - Math.log10(CONFIG.MIN_LIQUIDITY)) * 100));
+            const tfInd = tf !== '24h' ? `<span class="tf-indicator">(${tf}${pool.volumeEstimated ? ' est' : ''})</span>` : '';
+            const aprInd = tf !== '24h' ? `<span class="tf-indicator">(${tf})</span>` : '';
+
+            return `
+                <tr>
+                    <td>${escapeHtml(pool.chain)}</td>
+                    <td><span class="protocol-badge" title="${escapeHtml(pool.protocol)}">${escapeHtml(pool.protocol)}</span></td>
+                    <td class="pool-cell">
+                        <a href="${escapeHtml(pool.poolUrl)}" target="_blank" class="pool-link">${colorizePoolName(pool.name)}</a>
+                        ${pool.explorerUrl ? `<a href="${escapeHtml(pool.explorerUrl)}" target="_blank" class="explorer-link" title="View contract">📋</a>` : ''}
+                    </td>
+                    <td><span class="fee-badge ${getFeeClass(pool.fee)}">${pool.fee.toFixed(2)}%</span></td>
+                    <td class="liquidity-cell">
+                        <div class="liquidity-bar" style="width:${liqPct}%;background:hsl(0,0%,${30 + liqPct * 0.4}%)"></div>
+                        <span class="liquidity-value">${formatUsd(pool.liquidity)}</span>
+                    </td>
+                    <td>${formatUsd(pool.displayVolume)}${tfInd}</td>
+                    <td class="utilization-value ${getUtilClass(pool.utilization)}">${(pool.utilization * 100).toFixed(pool.utilization >= 1 ? 0 : pool.utilization >= 0.1 ? 1 : 2)}%</td>
+                    <td class="apr-value ${getAprClass(pool.apr)}">${pool.apr.toFixed(1)}%${aprInd}</td>
+                </tr>
+            `;
+        }
+
+        function renderSection(sectionId) {
+            const sec = state.sections[sectionId];
+            const pools = getPoolsForSection(sectionId)
+                .map(p => calculateMetrics(p, sec.timeframe));
+            
+            const sorted = sortPools(pools, sec.sortField, sec.sortDir);
+
+            const tbody = document.getElementById(`${sectionId}-tbody`);
+            const noData = document.getElementById(`${sectionId}-nodata`);
+            const count = document.getElementById(`${sectionId}-count`);
+
+            if (count) count.textContent = `(${sorted.length})`;
+
+            if (sorted.length === 0) {
+                if (tbody) tbody.innerHTML = '';
+                if (noData) noData.classList.remove('hidden');
+            } else {
+                if (tbody) tbody.innerHTML = sorted.map(p => renderPoolRow(p, sec.timeframe)).join('');
+                if (noData) noData.classList.add('hidden');
+            }
+
+            updateNetworkBadge(sectionId);
+        }
+
+        function renderAllSections() {
+            CONFIG.SECTIONS.forEach(s => renderSection(s.id));
+        }
+
+        function setSectionLoading(sectionId, loading, msg = 'Loading...') {
+            const overlay = document.getElementById(`${sectionId}-overlay`);
+            const text = overlay?.querySelector('.section-overlay-text');
+            if (text) text.textContent = msg;
+            overlay?.classList.toggle('active', loading);
+        }
+
+        // ============================================
+        // SECTION HTML GENERATION
+        // ============================================
+        function generateSectionHTML(config) {
+            const tfButtons = Object.keys(CONFIG.TIMEFRAMES).map(tf => 
+                `<button class="tf-btn${tf === '24h' ? ' active' : ''}" data-tf="${tf}">${tf}</button>`
+            ).join('');
+
+            return `
+                <div class="pair-section${config.grid ? '' : ' full-width'}" id="${config.id}-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            ${config.title}
+                            <span class="pool-count" id="${config.id}-count">(0)</span>
+                        </div>
+                        <div class="section-controls">
+                            <div class="timeframe-toggle" data-section="${config.id}">
+                                ${tfButtons}
+                            </div>
+                            <div class="network-selector" data-section="${config.id}">
+                                <button class="network-btn" type="button">
+                                    <span>Networks</span>
+                                    <span class="network-badge" id="${config.id}-netbadge">3</span>
+                                    <span class="network-arrow">▼</span>
+                                </button>
+                                <div class="network-dropdown" id="${config.id}-dropdown"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="chain" data-section="${config.id}">Chain</th>
+                                        <th data-sort="protocol" data-section="${config.id}">Protocol</th>
+                                        <th data-sort="name" data-section="${config.id}">Pool</th>
+                                        <th data-sort="fee" data-section="${config.id}">Fee</th>
+                                        <th data-sort="liquidity" data-section="${config.id}">Liquidity</th>
+                                        <th data-sort="displayVolume" data-section="${config.id}">Volume</th>
+                                        <th data-sort="utilization" data-section="${config.id}">Util %</th>
+                                        <th data-sort="apr" data-section="${config.id}">Est. APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="${config.id}-tbody"></tbody>
+                            </table>
+                            <div class="no-data hidden" id="${config.id}-nodata">No pools found.</div>
+                        </div>
+                    </div>
+                    <div class="section-overlay" id="${config.id}-overlay">
+                        <div class="spinner"></div>
+                        <div class="section-overlay-text">Loading...</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildSections() {
+            const grid = document.getElementById('dashboard-grid');
+            const wrapper = document.getElementById('stablecoin-section-wrapper');
+
+            grid.innerHTML = '';
+            wrapper.innerHTML = '';
+
+            CONFIG.SECTIONS.forEach(s => {
+                const html = generateSectionHTML(s);
+                if (s.grid) {
+                    grid.insertAdjacentHTML('beforeend', html);
+                } else {
+                    wrapper.insertAdjacentHTML('beforeend', html);
+                }
+            });
+        }
+
+        // ============================================
+        // NETWORK DROPDOWN
+        // ============================================
+        function buildDropdownHTML() {
+            let html = `
+                <div class="dropdown-header">
+                    <span>Filter Networks</span>
+                    <button type="button" class="select-loaded-btn">Select All Loaded</button>
+                </div>
+                <div class="dropdown-content">
+            `;
+
+            Object.entries(CONFIG.NETWORK_GROUPS).forEach(([group, nets]) => {
+                html += `<div class="network-group-label">${group}</div>`;
+                nets.forEach(net => {
+                    html += `
+                        <div class="network-item" data-net="${net.id}">
+                            <div class="network-checkbox"></div>
+                            <span class="network-name">${net.name}</span>
+                            ${net.initial ? '<span class="network-tag">Initial</span>' : ''}
+                        </div>
+                    `;
+                });
+            });
+
+            html += `
+                </div>
+                <div class="dropdown-footer">
+                    <button class="btn cancel-btn">Cancel</button>
+                    <button class="btn btn-primary apply-btn">Apply</button>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function updateNetworkBadge(sectionId) {
+            const badge = document.getElementById(`${sectionId}-netbadge`);
+            const sec = state.sections[sectionId];
+            if (badge) {
+                badge.textContent = sec.networks.filter(n => state.loadedNetworks.has(n)).length;
+            }
+        }
+
+        function updateDropdownUI(sectionId) {
+            const dropdown = document.getElementById(`${sectionId}-dropdown`);
+            const sec = state.sections[sectionId];
+
+            dropdown.querySelectorAll('.network-item').forEach(item => {
+                const netId = item.dataset.net;
+                const selected = sec.pendingNetworks.includes(netId);
+                const loaded = state.loadedNetworks.has(netId);
+
+                item.classList.toggle('selected', selected);
+                item.classList.toggle('not-loaded', !loaded);
+                item.querySelector('.network-checkbox').textContent = selected ? '✓' : '';
+
+                const existingTag = item.querySelector('.not-loaded-tag');
+                if (!loaded && !existingTag) {
+                    item.insertAdjacentHTML('beforeend', '<span class="not-loaded-tag">Not loaded</span>');
+                } else if (loaded && existingTag) {
+                    existingTag.remove();
+                }
+            });
+        }
+
+        function positionDropdown(btn, dropdown) {
+            const rect = btn.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+            dropdown.style.left = 'auto';
+
+            requestAnimationFrame(() => {
+                const dRect = dropdown.getBoundingClientRect();
+                if (dRect.bottom > window.innerHeight - 20) {
+                    dropdown.style.top = 'auto';
+                    dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+                }
+            });
+        }
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.network-dropdown.open').forEach(d => d.classList.remove('open'));
+            document.querySelectorAll('.network-btn.open').forEach(b => b.classList.remove('open'));
+        }
+
+        function initNetworkSelectors() {
+            CONFIG.SECTIONS.forEach(s => {
+                const dropdown = document.getElementById(`${s.id}-dropdown`);
+                dropdown.innerHTML = buildDropdownHTML();
+            });
+
+            document.querySelectorAll('.network-selector').forEach(sel => {
+                const sectionId = sel.dataset.section;
+                const btn = sel.querySelector('.network-btn');
+                const dropdown = sel.querySelector('.network-dropdown');
+
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const wasOpen = dropdown.classList.contains('open');
+                    closeAllDropdowns();
+
+                    if (!wasOpen) {
+                        state.sections[sectionId].pendingNetworks = [...state.sections[sectionId].networks];
+                        updateDropdownUI(sectionId);
+                        dropdown.classList.add('open');
+                        btn.classList.add('open');
+                        positionDropdown(btn, dropdown);
+                    }
+                });
+
+                dropdown.addEventListener('click', e => e.stopPropagation());
+
+                dropdown.querySelectorAll('.network-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const netId = item.dataset.net;
+                        if (!state.loadedNetworks.has(netId)) return;
+
+                        const pending = state.sections[sectionId].pendingNetworks;
+                        const idx = pending.indexOf(netId);
+                        if (idx > -1) pending.splice(idx, 1);
+                        else pending.push(netId);
+
+                        updateDropdownUI(sectionId);
+                    });
+                });
+
+                dropdown.querySelector('.select-loaded-btn').addEventListener('click', () => {
+                    state.sections[sectionId].pendingNetworks = [...state.loadedNetworks];
+                    updateDropdownUI(sectionId);
+                });
+
+                dropdown.querySelector('.cancel-btn').addEventListener('click', () => {
+                    closeAllDropdowns();
+                });
+
+                dropdown.querySelector('.apply-btn').addEventListener('click', () => {
+                    state.sections[sectionId].networks = state.sections[sectionId].pendingNetworks
+                        .filter(n => state.loadedNetworks.has(n));
+                    closeAllDropdowns();
+                    renderSection(sectionId);
+                    log(`[${sectionId}] Applied network filter: ${state.sections[sectionId].networks.join(', ')}`, 'info');
+                });
+            });
+
+            document.addEventListener('click', closeAllDropdowns);
+
+            window.addEventListener('scroll', () => {
+                document.querySelectorAll('.network-dropdown.open').forEach(dropdown => {
+                    const btn = dropdown.closest('.network-selector').querySelector('.network-btn');
+                    positionDropdown(btn, dropdown);
+                });
+            }, true);
+        }
+
+        // ============================================
+        // TIMEFRAME HANDLERS
+        // ============================================
+        function initTimeframeToggles() {
+            document.querySelectorAll('.timeframe-toggle').forEach(toggle => {
+                const sectionId = toggle.dataset.section;
+
+                toggle.querySelectorAll('.tf-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const tf = btn.dataset.tf;
+                        const sec = state.sections[sectionId];
+
+                        if (tf === sec.timeframe) return;
+
+                        toggle.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        sec.timeframe = tf;
+
+                        if (tf !== '24h') {
+                            setSectionLoading(sectionId, true, `Loading ${tf} data...`);
+                            await fetchOHLCVForSection(sectionId, tf);
+                            setSectionLoading(sectionId, false);
+                        }
+
+                        renderSection(sectionId);
+                        log(`[${sectionId}] Changed timeframe to ${tf}`, 'info');
+                    });
+                });
+            });
+        }
+
+        // ============================================
+        // SORTING
+        // ============================================
+        function initSorting() {
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const sectionId = th.dataset.section;
+                    const field = th.dataset.sort;
+                    const sec = state.sections[sectionId];
+
+                    if (sec.sortField === field) {
+                        sec.sortDir = sec.sortDir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sec.sortField = field;
+                        sec.sortDir = 'desc';
+                    }
+
+                    document.querySelectorAll(`th[data-section="${sectionId}"]`).forEach(h => {
+                        h.classList.remove('sort-asc', 'sort-desc');
+                    });
+                    th.classList.add(`sort-${sec.sortDir}`);
+
+                    renderSection(sectionId);
+                });
+            });
+        }
+
+        // ============================================
+        // MAIN OPERATIONS
+        // ============================================
+        async function loadInitialData() {
+            if (state.isLoading) return;
+            state.isLoading = true;
+
+            const refreshBtn = document.getElementById('refresh-btn');
+            refreshBtn.disabled = true;
+
+            state.pools.clear();
+            state.loadedNetworks.clear();
+            state.apiCalls = 0;
+            state.debugLogs = [];
+
+            CONFIG.SECTIONS.forEach(s => {
+                const sec = state.sections[s.id];
+                sec.networks = [...CONFIG.INITIAL_NETWORKS];
+                sec.pendingNetworks = [...CONFIG.INITIAL_NETWORKS];
+                sec.timeframe = '24h';
+                sec.ohlcvCache = {};
+                setSectionLoading(s.id, true, 'Loading pools...');
+
+                const toggle = document.querySelector(`.timeframe-toggle[data-section="${s.id}"]`);
+                toggle?.querySelectorAll('.tf-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tf === '24h');
+                });
+            });
+
+            try {
+                log('Loading from Ethereum, Arbitrum, Base...', 'info');
+                updateStatus('Loading pools from initial networks...', 'info', true);
+
+                const discovered = await discoverPools(CONFIG.INITIAL_NETWORKS, updateProgress);
+
+                discovered.forEach((pool, id) => state.pools.set(id, pool));
+
+                renderAllSections();
+
+                updateStatus(`Loaded ${state.pools.size} pools from ${state.loadedNetworks.size} networks`, 'success', false);
+                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+
+                log(`Initial load complete. ${state.pools.size} pools, ${state.apiCalls} API calls`, 'success');
+                updateLoadMoreBtn();
+
+            } catch (err) {
+                log(`Load error: ${err.message}`, 'error');
+                updateStatus('Error loading data', 'error', false);
+            } finally {
+                state.isLoading = false;
+                refreshBtn.disabled = false;
+                updateProgress(0);
+                CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, false));
+            }
+        }
+
+        async function loadMoreNetworks() {
+            if (state.isLoading) return;
+
+            const remaining = CONFIG.ADDITIONAL_NETWORKS.filter(n => !state.loadedNetworks.has(n));
+            if (remaining.length === 0) return;
+
+            state.isLoading = true;
+
+            const btn = document.getElementById('load-more-btn');
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, true, 'Loading more networks...'));
+
+            try {
+                log(`Loading ${remaining.length} additional networks...`, 'info');
+                updateStatus(`Loading ${remaining.length} more networks...`, 'info', true);
+
+                const discovered = await discoverPools(remaining, updateProgress);
+
+                discovered.forEach((pool, id) => state.pools.set(id, pool));
+
+                CONFIG.SECTIONS.forEach(s => {
+                    state.sections[s.id].networks = [...state.loadedNetworks];
+                    state.sections[s.id].pendingNetworks = [...state.loadedNetworks];
+                });
+
+                renderAllSections();
+
+                updateStatus(`Loaded ${state.pools.size} pools from ${state.loadedNetworks.size} networks`, 'success', false);
+                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+
+                log(`Additional networks loaded. ${state.pools.size} total pools`, 'success');
+                updateLoadMoreBtn();
+
+            } catch (err) {
+                log(`Load more error: ${err.message}`, 'error');
+                updateStatus('Error loading additional networks', 'error', false);
+            } finally {
+                state.isLoading = false;
+                btn.disabled = false;
+                btn.textContent = 'Load More Networks';
+                updateProgress(0);
+                CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, false));
+            }
+        }
+
+        function updateLoadMoreBtn() {
+            const remaining = CONFIG.ADDITIONAL_NETWORKS.filter(n => !state.loadedNetworks.has(n));
+            const btn = document.getElementById('load-more-btn');
+            const info = document.getElementById('load-more-info');
+
+            if (remaining.length > 0) {
+                btn.classList.remove('hidden');
+                info.classList.remove('hidden');
+                info.textContent = `${remaining.length} more networks available`;
+            } else {
+                btn.classList.add('hidden');
+                info.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function init() {
+            buildSections();
+            initNetworkSelectors();
+            initTimeframeToggles();
+            initSorting();
+
+            document.getElementById('refresh-btn').addEventListener('click', loadInitialData);
+            document.getElementById('load-more-btn').addEventListener('click', loadMoreNetworks);
+
+            document.getElementById('debug-toggle').addEventListener('click', () => {
+                document.getElementById('debug-section').classList.toggle('hidden');
+            });
+
+            document.getElementById('clear-debug').addEventListener('click', () => {
+                state.debugLogs = [];
+                renderDebugLog();
+            });
+
+            loadInitialData();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>
