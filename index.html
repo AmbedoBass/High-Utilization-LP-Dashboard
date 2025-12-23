@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High Utilization LP Dashboard</title>
+    <title>BTC LP Utilization Dashboard</title>
     <style>
         :root {
             --bg-color: #0a0a0a;
             --bg-color-lighter: #111111;
             --surface-color: #1a1a1a;
-            --surface-color-alt: #141414;
             --primary-text-color: #e0e0e0;
             --secondary-text-color: #888888;
             --border-color: #2a2a2a;
-            --accent-color: #666666;
             --hover-bg-color: #222222;
             --success-color: #4ade80;
             --warning-color: #fbbf24;
@@ -37,7 +35,6 @@
             --section-th-bg: #121212;
             --link-color: #999999;
             --link-color-hover: #cccccc;
-            --liquidity-bar-color: hsl(270, 50%, 35%);
             --geckoterminal-color: #7c3aed;
         }
 
@@ -56,7 +53,7 @@
         }
 
         header {
-            padding: 1.25rem 2rem;
+            padding: 1.5rem 2rem;
             border-bottom: 1px solid var(--border-color);
             background-color: var(--bg-color-lighter);
         }
@@ -67,20 +64,28 @@
             align-items: flex-start;
             flex-wrap: wrap;
             gap: 1rem;
-            max-width: 1920px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .header-left h1 {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: var(--primary-text-color);
             margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-left h1 .btc-icon {
+            color: var(--btc-color);
         }
 
         .header-left p {
             color: var(--secondary-text-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            max-width: 500px;
         }
 
         .header-right {
@@ -103,7 +108,7 @@
         }
 
         .header-status .pool-count {
-            color: var(--success-color);
+            color: var(--btc-color);
             font-weight: 600;
         }
 
@@ -119,30 +124,23 @@
             color: var(--warning-color);
         }
 
-        .header-status .error-indicator {
-            color: var(--error-color);
-        }
-
         main {
-            padding: 1.25rem;
-            max-width: 1920px;
+            padding: 1.5rem;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         footer {
-            padding: 0.75rem 2rem;
+            padding: 1rem 2rem;
             border-top: 1px solid var(--border-color);
             text-align: center;
             font-size: 0.8rem;
             color: var(--secondary-text-color);
         }
 
-        .data-sources {
-            margin-top: 0.5rem;
+        .data-source {
+            margin-top: 0.4rem;
             font-size: 0.75rem;
-        }
-
-        .source-gecko {
             color: var(--geckoterminal-color);
         }
 
@@ -151,61 +149,42 @@
             color: #fff;
             border: 1px solid #444444;
             padding: 0.5rem 1rem;
-            border-radius: 3px;
+            border-radius: 4px;
             font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
+            transition: all 0.2s ease;
         }
 
         .btn:hover {
             background-color: #444444;
-            transform: translateY(-1px);
         }
 
         .btn:disabled {
             background-color: #222222;
             color: var(--secondary-text-color);
             cursor: not-allowed;
-            transform: none;
         }
 
         .btn-primary {
-            background-color: var(--util-moderate);
-            border-color: var(--util-high);
+            background-color: var(--btc-color);
+            border-color: var(--btc-color);
         }
 
         .btn-primary:hover {
-            background-color: var(--util-high);
+            background-color: #e8850f;
         }
 
         .btn-sm {
-            padding: 0.4rem 0.8rem;
+            padding: 0.35rem 0.75rem;
             font-size: 0.8rem;
-        }
-
-        #progress-container {
-            width: 100%;
-            height: 4px;
-            background-color: var(--border-color);
-            border-radius: 2px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        #progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--geckoterminal-color), var(--util-excellent));
-            border-radius: 2px;
-            transition: width 0.3s ease;
-            width: 0%;
         }
 
         .spinner {
             width: 14px;
             height: 14px;
             border: 2px solid var(--border-color);
-            border-top: 2px solid var(--primary-text-color);
+            border-top: 2px solid var(--btc-color);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -225,123 +204,112 @@
             100% { transform: rotate(360deg); }
         }
 
-        #dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            min-height: 500px;
-        }
-
-        #stablecoin-section-wrapper {
-            margin-top: 1.25rem;
-        }
-
-        .pair-section {
+        /* Main Panel */
+        .main-panel {
             background-color: var(--section-bg);
             border: 1px solid var(--section-border);
-            border-radius: 3px;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
-            min-height: 320px;
-            max-height: 450px;
+            min-height: 500px;
             position: relative;
         }
 
-        .pair-section.full-width {
-            max-height: 380px;
-        }
-
-        .section-header {
+        .panel-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem 1rem;
+            padding: 1rem 1.25rem;
             background-color: var(--section-header-bg);
             border-bottom: 1px solid var(--section-border);
-            flex-shrink: 0;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .panel-title .btc-icon {
+            color: var(--btc-color);
+            font-size: 1.3rem;
+        }
+
+        .pool-count-badge {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--secondary-text-color);
+            background-color: var(--surface-color);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        .panel-controls {
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
             flex-wrap: wrap;
         }
 
-        .section-title {
+        /* Load Status */
+        .load-status {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 1.05rem;
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
             font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
 
-        .pool-count {
-            font-size: 0.85rem;
-            font-weight: 400;
-            opacity: 0.7;
-        }
-
-        .section-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-        }
-
-        /* Quick Load Indicator Styles */
-        .quick-load-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .quick-badge {
+        .status-badge.quick {
             background-color: rgba(251, 191, 36, 0.15);
             color: var(--warning-color);
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.2rem 0.5rem;
-            border-radius: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
         }
 
-        .full-loaded-badge {
+        .status-badge.full {
             background-color: rgba(74, 222, 128, 0.15);
             color: var(--success-color);
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.2rem 0.5rem;
-            border-radius: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
         }
 
-        .load-full-btn {
+        .load-more-btn {
             background-color: transparent;
             color: var(--util-high);
             border: 1px solid var(--util-moderate);
-            padding: 0.2rem 0.5rem;
-            border-radius: 2px;
+            padding: 0.25rem 0.6rem;
+            border-radius: 3px;
             font-size: 0.7rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
         }
 
-        .load-full-btn:hover {
+        .load-more-btn:hover {
             background-color: var(--util-moderate);
             color: #fff;
         }
 
-        .load-full-btn:disabled {
+        .load-more-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
+        /* Timeframe Toggle */
         .timeframe-toggle {
             display: flex;
-            align-items: center;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 3px;
-            padding: 2px;
+            border-radius: 4px;
+            padding: 3px;
             gap: 2px;
         }
 
@@ -349,13 +317,12 @@
             background-color: transparent;
             color: var(--secondary-text-color);
             border: none;
-            padding: 0.3rem 0.55rem;
-            border-radius: 2px;
-            font-size: 0.72rem;
+            padding: 0.35rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
-            white-space: nowrap;
         }
 
         .tf-btn:hover {
@@ -364,10 +331,11 @@
         }
 
         .tf-btn.active {
-            background-color: var(--util-moderate);
+            background-color: var(--btc-color);
             color: #fff;
         }
 
+        /* Network Selector */
         .network-selector {
             position: relative;
         }
@@ -376,38 +344,37 @@
             background-color: var(--surface-color);
             color: var(--secondary-text-color);
             border: 1px solid var(--border-color);
-            padding: 0.35rem 0.65rem;
-            border-radius: 3px;
-            font-size: 0.75rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
         }
 
         .network-btn:hover {
             background-color: var(--hover-bg-color);
             color: var(--primary-text-color);
-            border-color: #444;
         }
 
         .network-btn.open {
-            border-color: var(--util-moderate);
+            border-color: var(--btc-color);
         }
 
-        .network-badge {
-            background-color: var(--util-moderate);
+        .network-count-badge {
+            background-color: var(--btc-color);
             color: #fff;
-            font-size: 0.65rem;
-            padding: 0.1rem 0.35rem;
-            border-radius: 2px;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
             font-weight: 600;
         }
 
         .network-arrow {
-            font-size: 0.55rem;
+            font-size: 0.6rem;
             transition: transform 0.2s ease;
         }
 
@@ -417,14 +384,14 @@
 
         .network-dropdown {
             position: fixed;
-            width: 320px;
+            width: 300px;
             max-width: calc(100vw - 20px);
-            max-height: 600px;
+            max-height: 500px;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 3px;
+            border-radius: 6px;
             z-index: 9999;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
             display: none;
             flex-direction: column;
         }
@@ -434,22 +401,21 @@
         }
 
         .dropdown-header {
-            padding: 0.6rem 0.75rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--secondary-text-color);
             text-transform: uppercase;
             letter-spacing: 0.03em;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-shrink: 0;
         }
 
         .dropdown-header button {
             background: none;
             border: none;
-            color: var(--util-high);
+            color: var(--btc-color);
             font-size: 0.7rem;
             cursor: pointer;
             padding: 0;
@@ -462,7 +428,7 @@
         .dropdown-content {
             flex: 1;
             overflow-y: auto;
-            padding: 0.4rem 0;
+            padding: 0.5rem 0;
         }
 
         .network-group-label {
@@ -470,674 +436,15 @@
             color: var(--secondary-text-color);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 0.5rem 0.75rem 0.25rem;
+            padding: 0.6rem 1rem 0.3rem;
             opacity: 0.7;
         }
 
         .network-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.15s ease;
-        }
-
-        .network-item:hover {
-            background-color: var(--hover-bg-color);
-        }
-
-        .network-item.selected {
-            background-color: rgba(167, 139, 250, 0.1);
-        }
-
-        .network-item.not-loaded {
-            opacity: 0.5;
-        }
-
-        .network-item.not-loaded:hover {
-            background-color: rgba(251, 191, 36, 0.1);
-            opacity: 0.7;
-        }
-
-        .network-item.not-loaded.selected {
-            background-color: rgba(251, 191, 36, 0.15);
-            opacity: 0.8;
-        }
-
-        .network-checkbox {
-            width: 14px;
-            height: 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            color: #fff;
-            background-color: var(--bg-color);
-            flex-shrink: 0;
-        }
-
-        .network-item.selected .network-checkbox {
-            background-color: var(--util-moderate);
-            border-color: var(--util-high);
-        }
-
-        .network-item.not-loaded.selected .network-checkbox {
-            background-color: var(--warning-color);
-            border-color: var(--warning-color);
-        }
-
-        .network-name {
-            font-size: 0.8rem;
-            color: var(--primary-text-color);
-            flex: 1;
-        }
-
-        .network-tag {
-            font-size: 0.6rem;
-            color: var(--util-high);
-            background-color: rgba(167, 139, 250, 0.15);
-            padding: 0.1rem 0.3rem;
-            border-radius: 2px;
-        }
-
-        .not-loaded-tag {
-            font-size: 0.6rem;
-            color: var(--warning-color);
-            background-color: rgba(251, 191, 36, 0.15);
-            padding: 0.1rem 0.3rem;
-            border-radius: 2px;
-        }
-
-        .loaded-tag {
-            font-size: 0.6rem;
-            color: var(--success-color);
-            background-color: rgba(74, 222, 128, 0.15);
-            padding: 0.1rem 0.3rem;
-            border-radius: 2px;
-        }
-
-        .dropdown-footer {
-            padding: 0.6rem 0.75rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-            gap: 0.5rem;
-        }
-
-        .dropdown-footer-info {
-            font-size: 0.7rem;
-            color: var(--secondary-text-color);
-        }
-
-        .dropdown-footer-info .to-load {
-            color: var(--warning-color);
-            font-weight: 600;
-        }
-
-        .dropdown-footer-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .dropdown-footer .btn {
-            padding: 0.35rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .section-overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(10, 10, 10, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
-        }
-
-        .section-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .section-overlay .spinner {
-            width: 28px;
-            height: 28px;
-            border-width: 3px;
-            border-top-color: var(--util-high);
-            margin-bottom: 0.75rem;
-        }
-
-        .section-overlay-text {
-            font-size: 0.85rem;
-            color: var(--secondary-text-color);
-            text-align: center;
-            padding: 0 1rem;
-        }
-
-        .section-content {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .table-container {
-            flex: 1;
-            overflow: auto;
-            min-height: 0;
-        }
-
-        .pool-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            table-layout: fixed;
-        }
-
-        .pool-table th,
-        .pool-table td {
-            padding: 0.55rem 0.7rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-            vertical-align: middle;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .pool-table .col-chain { width: 80px; }
-        .pool-table .col-protocol { width: 90px; }
-        .pool-table .col-pool { width: 200px; min-width: 180px; }
-        .pool-table .col-fee { width: 65px; }
-        .pool-table .col-liquidity { width: 100px; }
-        .pool-table .col-volume { width: 110px; }
-        .pool-table .col-util { width: 80px; }
-        .pool-table .col-apr { width: 100px; }
-
-        .pool-table .col-liquidity,
-        .pool-table .col-volume,
-        .pool-table .col-util,
-        .pool-table .col-apr,
-        .pool-table td:nth-child(5),
-        .pool-table td:nth-child(6),
-        .pool-table td:nth-child(7),
-        .pool-table td:nth-child(8) {
-            text-align: right;
-        }
-
-        .pool-table th {
-            background-color: var(--section-th-bg);
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            cursor: pointer;
-            user-select: none;
-            font-size: 0.73rem;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            color: var(--secondary-text-color);
-        }
-
-        .pool-table th:hover {
-            color: var(--primary-text-color);
-        }
-
-        .pool-table th[data-sort]::after {
-            content: ' ⇅';
-            opacity: 0.4;
-            font-size: 0.65em;
-        }
-
-        .pool-table th.sort-asc::after {
-            content: ' ↑';
-            opacity: 1;
-        }
-
-        .pool-table th.sort-desc::after {
-            content: ' ↓';
-            opacity: 1;
-        }
-
-        .pool-table tbody tr {
-            transition: background-color 0.15s ease;
-        }
-
-        .pool-table tbody tr:hover {
-            background-color: var(--hover-bg-color);
-        }
-
-        .pool-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .pool-link,
-        .explorer-link {
-            color: var(--link-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.15s ease;
-        }
-
-        .pool-link:hover,
-        .explorer-link:hover {
-            color: var(--link-color-hover);
-            text-decoration: underline;
-        }
-
-        .pool-cell {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            min-width: 180px;
-        }
-
-        .pool-cell .pool-link {
-            flex: 1;
-             --section-th-bg: #121212;
-            --link-color: #999999;
-            --link-color-hover: #cccccc;
-            --liquidity-bar-color: hsl(270, 50%, 35%);
-            --geckoterminal-color: #7c3aed;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--primary-text-color);
-            line-height: 1.5;
-            min-height: 100vh;
-        }
-
-        header {
-            padding: 1.25rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-color-lighter);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 1rem;
-            max-width: 1920px;
-            margin: 0 auto;
-        }
-
-        .header-left h1 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            color: var(--primary-text-color);
-            margin-bottom: 0.4rem;
-        }
-
-        .header-left p {
-            color: var(--secondary-text-color);
-            font-size: 0.9rem;
-        }
-
-        .header-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 0.5rem;
-        }
-
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .header-status {
-            font-size: 0.8rem;
-            color: var(--secondary-text-color);
-            text-align: right;
-        }
-
-        .header-status .pool-count {
-            color: var(--success-color);
-            font-weight: 600;
-        }
-
-        .header-status .network-count {
-            color: var(--util-high);
-            font-weight: 500;
-        }
-
-        .header-status .loading-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--warning-color);
-        }
-
-        .header-status .error-indicator {
-            color: var(--error-color);
-        }
-
-        main {
-            padding: 1.25rem;
-            max-width: 1920px;
-            margin: 0 auto;
-        }
-
-        footer {
-            padding: 0.75rem 2rem;
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--secondary-text-color);
-        }
-
-        .data-sources {
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-        }
-
-        .source-gecko {
-            color: var(--geckoterminal-color);
-        }
-
-        .btn {
-            background-color: #333333;
-            color: #fff;
-            border: 1px solid #444444;
-            padding: 0.5rem 1rem;
-            border-radius: 3px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-        }
-
-        .btn:hover {
-            background-color: #444444;
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            background-color: #222222;
-            color: var(--secondary-text-color);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-primary {
-            background-color: var(--util-moderate);
-            border-color: var(--util-high);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--util-high);
-        }
-
-        .btn-sm {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-        }
-
-        #progress-container {
-            width: 100%;
-            height: 4px;
-            background-color: var(--border-color);
-            border-radius: 2px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        #progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--geckoterminal-color), var(--util-excellent));
-            border-radius: 2px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        .spinner {
-            width: 14px;
-            height: 14px;
-            border: 2px solid var(--border-color);
-            border-top: 2px solid var(--primary-text-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .spinner-sm {
-            width: 12px;
-            height: 12px;
-            border-width: 1.5px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        #dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            min-height: 500px;
-        }
-
-        #stablecoin-section-wrapper {
-            margin-top: 1.25rem;
-        }
-
-        .pair-section {
-            background-color: var(--section-bg);
-            border: 1px solid var(--section-border);
-            border-radius: 3px;
-            display: flex;
-            flex-direction: column;
-            min-height: 320px;
-            max-height: 450px;
-            position: relative;
-        }
-
-        .pair-section.full-width {
-            max-height: 380px;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem;
-            background-color: var(--section-header-bg);
-            border-bottom: 1px solid var(--section-border);
-            flex-shrink: 0;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.05rem;
-            font-weight: 600;
-        }
-
-        .pool-count {
-            font-size: 0.85rem;
-            font-weight: 400;
-            opacity: 0.7;
-        }
-
-        .section-controls {
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            flex-wrap: wrap;
-        }
-
-        .timeframe-toggle {
-            display: flex;
-            align-items: center;
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            padding: 2px;
-            gap: 2px;
-        }
-
-        .tf-btn {
-            background-color: transparent;
-            color: var(--secondary-text-color);
-            border: none;
-            padding: 0.3rem 0.55rem;
-            border-radius: 2px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            white-space: nowrap;
-        }
-
-        .tf-btn:hover {
-            background-color: var(--hover-bg-color);
-            color: var(--primary-text-color);
-        }
-
-        .tf-btn.active {
-            background-color: var(--util-moderate);
-            color: #fff;
-        }
-
-        .network-selector {
-            position: relative;
-        }
-
-        .network-btn {
-            background-color: var(--surface-color);
-            color: var(--secondary-text-color);
-            border: 1px solid var(--border-color);
-            padding: 0.35rem 0.65rem;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .network-btn:hover {
-            background-color: var(--hover-bg-color);
-            color: var(--primary-text-color);
-            border-color: #444;
-        }
-
-        .network-btn.open {
-            border-color: var(--util-moderate);
-        }
-
-        .network-badge {
-            background-color: var(--util-moderate);
-            color: #fff;
-            font-size: 0.65rem;
-            padding: 0.1rem 0.35rem;
-            border-radius: 2px;
-            font-weight: 600;
-        }
-
-        .network-arrow {
-            font-size: 0.55rem;
-            transition: transform 0.2s ease;
-        }
-
-        .network-btn.open .network-arrow {
-            transform: rotate(180deg);
-        }
-
-        .network-dropdown {
-            position: fixed;
-            width: 320px;
-            max-width: calc(100vw - 20px);
-            max-height: 600px;
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            z-index: 9999;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
-            display: none;
-            flex-direction: column;
-        }
-
-        .network-dropdown.open {
-            display: flex;
-        }
-
-        .dropdown-header {
-            padding: 0.6rem 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.7rem;
-            color: var(--secondary-text-color);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .dropdown-header button {
-            background: none;
-            border: none;
-            color: var(--util-high);
-            font-size: 0.7rem;
-            cursor: pointer;
-            padding: 0;
-        }
-
-        .dropdown-header button:hover {
-            text-decoration: underline;
-        }
-
-        .dropdown-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.4rem 0;
-        }
-
-        .network-group-label {
-            font-size: 0.65rem;
-            color: var(--secondary-text-color);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 0.5rem 0.75rem 0.25rem;
-            opacity: 0.7;
-        }
-
-        .network-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0.75rem;
+            padding: 0.5rem 1rem;
             cursor: pointer;
             transition: background-color 0.15s ease;
         }
@@ -1147,7 +454,7 @@
         }
 
         .network-item.selected {
-            background-color: rgba(167, 139, 250, 0.1);
+            background-color: rgba(247, 147, 26, 0.1);
         }
 
         .network-item.not-loaded {
@@ -1159,77 +466,58 @@
             opacity: 0.7;
         }
 
-        .network-item.not-loaded.selected {
-            background-color: rgba(251, 191, 36, 0.15);
-            opacity: 0.8;
-        }
-
         .network-checkbox {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border: 1px solid var(--border-color);
-            border-radius: 2px;
+            border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             color: #fff;
             background-color: var(--bg-color);
             flex-shrink: 0;
         }
 
         .network-item.selected .network-checkbox {
-            background-color: var(--util-moderate);
-            border-color: var(--util-high);
-        }
-
-        .network-item.not-loaded.selected .network-checkbox {
-            background-color: var(--warning-color);
-            border-color: var(--warning-color);
+            background-color: var(--btc-color);
+            border-color: var(--btc-color);
         }
 
         .network-name {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--primary-text-color);
             flex: 1;
         }
 
         .network-tag {
             font-size: 0.6rem;
-            color: var(--util-high);
-            background-color: rgba(167, 139, 250, 0.15);
-            padding: 0.1rem 0.3rem;
-            border-radius: 2px;
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
         }
 
-        .not-loaded-tag {
-            font-size: 0.6rem;
-            color: var(--warning-color);
-            background-color: rgba(251, 191, 36, 0.15);
-            padding: 0.1rem 0.3rem;
-            border-radius: 2px;
-        }
-
-        .loaded-tag {
-            font-size: 0.6rem;
+        .network-tag.loaded {
             color: var(--success-color);
             background-color: rgba(74, 222, 128, 0.15);
-            padding: 0.1rem 0.3rem;
-            border-radius: 2px;
+        }
+
+        .network-tag.not-loaded {
+            color: var(--warning-color);
+            background-color: rgba(251, 191, 36, 0.15);
         }
 
         .dropdown-footer {
-            padding: 0.6rem 0.75rem;
+            padding: 0.75rem 1rem;
             border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-shrink: 0;
             gap: 0.5rem;
         }
 
         .dropdown-footer-info {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--secondary-text-color);
         }
 
@@ -1243,57 +531,17 @@
             gap: 0.5rem;
         }
 
-        .dropdown-footer .btn {
-            padding: 0.35rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .section-overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(10, 10, 10, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
-        }
-
-        .section-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .section-overlay .spinner {
-            width: 28px;
-            height: 28px;
-            border-width: 3px;
-            border-top-color: var(--util-high);
-            margin-bottom: 0.75rem;
-        }
-
-        .section-overlay-text {
-            font-size: 0.85rem;
-            color: var(--secondary-text-color);
-            text-align: center;
-            padding: 0 1rem;
-        }
-
-        .section-content {
+        /* Table */
+        .panel-content {
             flex: 1;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 0;
         }
 
         .table-container {
             flex: 1;
             overflow: auto;
-            min-height: 0;
         }
 
         .pool-table {
@@ -1305,32 +553,28 @@
 
         .pool-table th,
         .pool-table td {
-            padding: 0.55rem 0.7rem;
+            padding: 0.65rem 0.85rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
-            vertical-align: middle;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .pool-table .col-chain { width: 80px; }
-        .pool-table .col-protocol { width: 90px; }
-        .pool-table .col-pool { width: 200px; min-width: 180px; }
-        .pool-table .col-fee { width: 65px; }
-        .pool-table .col-liquidity { width: 100px; }
-        .pool-table .col-volume { width: 110px; }
-        .pool-table .col-util { width: 80px; }
-        .pool-table .col-apr { width: 90px; }
+        .pool-table .col-chain { width: 90px; }
+        .pool-table .col-protocol { width: 100px; }
+        .pool-table .col-type { width: 90px; }
+        .pool-table .col-pool { width: 180px; }
+        .pool-table .col-fee { width: 70px; }
+        .pool-table .col-liquidity { width: 110px; text-align: right; }
+        .pool-table .col-volume { width: 120px; text-align: right; }
+        .pool-table .col-util { width: 85px; text-align: right; }
+        .pool-table .col-apr { width: 100px; text-align: right; }
 
-        .pool-table .col-liquidity,
-        .pool-table .col-volume,
-        .pool-table .col-util,
-        .pool-table .col-apr,
-        .pool-table td:nth-child(5),
         .pool-table td:nth-child(6),
         .pool-table td:nth-child(7),
-        .pool-table td:nth-child(8) {
+        .pool-table td:nth-child(8),
+        .pool-table td:nth-child(9) {
             text-align: right;
         }
 
@@ -1342,7 +586,7 @@
             z-index: 10;
             cursor: pointer;
             user-select: none;
-            font-size: 0.73rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.03em;
             color: var(--secondary-text-color);
@@ -1355,7 +599,7 @@
         .pool-table th[data-sort]::after {
             content: ' ⇅';
             opacity: 0.4;
-            font-size: 0.65em;
+            font-size: 0.6em;
         }
 
         .pool-table th.sort-asc::after {
@@ -1376,18 +620,13 @@
             background-color: var(--hover-bg-color);
         }
 
-        .pool-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .pool-link, .explorer-link {
+        .pool-link {
             color: var(--link-color);
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.15s ease;
         }
 
-        .pool-link:hover, .explorer-link:hover {
+        .pool-link:hover {
             color: var(--link-color-hover);
             text-decoration: underline;
         }
@@ -1396,56 +635,70 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            min-width: 180px;
         }
 
-        .pool-cell .pool-link {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .pool-cell .explorer-link {
-            flex-shrink: 0;
-            width: 18px;
-            text-align: center;
+        .explorer-link {
+            opacity: 0.4;
             font-size: 0.75rem;
-            opacity: 0.5;
+            text-decoration: none;
         }
 
-        .pool-cell .explorer-link:hover {
+        .explorer-link:hover {
             opacity: 1;
         }
 
+        /* Token Colors */
         .token-btc { color: var(--btc-color); font-weight: 600; }
         .token-eth { color: var(--eth-color); font-weight: 600; }
         .token-usdc { color: var(--usdc-color); font-weight: 600; }
         .token-usdt { color: var(--usdt-color); font-weight: 600; }
         .token-dai { color: var(--dai-color); font-weight: 600; }
         .token-stable { color: var(--primary-text-color); font-weight: 500; }
-        .token-prefix { font-weight: 400; }
+        .token-prefix { font-weight: 400; opacity: 0.8; }
 
+        /* Badges */
         .protocol-badge {
             display: inline-block;
-            padding: 0.1rem 0.35rem;
-            border-radius: 2px;
-            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
             font-weight: 500;
             background-color: rgba(255, 255, 255, 0.08);
-            max-width: 80px;
+            max-width: 90px;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .type-badge.stable {
+            background-color: rgba(74, 144, 226, 0.15);
+            color: var(--usdc-color);
+        }
+
+        .type-badge.eth {
+            background-color: rgba(135, 206, 235, 0.15);
+            color: var(--eth-color);
+        }
+
+        .type-badge.wrapped {
+            background-color: rgba(247, 147, 26, 0.15);
+            color: var(--btc-color);
         }
 
         .fee-badge {
             display: inline-block;
-            padding: 0.12rem 0.35rem;
-            border-radius: 2px;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
             font-size: 0.75rem;
             font-weight: 600;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--secondary-text-color);
         }
 
         .fee-badge.fee-low {
@@ -1463,6 +716,7 @@
             color: var(--error-color);
         }
 
+        /* Metrics */
         .liquidity-cell {
             position: relative;
             font-weight: 500;
@@ -1473,10 +727,9 @@
             left: 0;
             top: 0;
             bottom: 0;
-            opacity: 0.4;
-            border-radius: 1px;
-            z-index: 0;
-            background: linear-gradient(90deg, hsl(270, 50%, 25%), hsl(270, 50%, 40%));
+            opacity: 0.3;
+            border-radius: 2px;
+            background: linear-gradient(90deg, rgba(247, 147, 26, 0.3), rgba(247, 147, 26, 0.5));
         }
 
         .liquidity-value {
@@ -1496,25 +749,62 @@
         .utilization-moderate { color: var(--util-moderate); }
         .utilization-low { color: var(--util-low); }
 
+        .tf-indicator {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            margin-left: 0.25rem;
+        }
+
+        .apr-basis {
+            font-size: 0.6rem;
+            font-weight: 400;
+            opacity: 0.6;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
         .no-data {
             text-align: center;
-            padding: 2.5rem 1rem;
+            padding: 3rem 1rem;
             color: var(--secondary-text-color);
             font-size: 0.9rem;
         }
 
-        .tf-indicator {
-            font-size: 0.65rem;
-            opacity: 0.6;
-            margin-left: 0.2rem;
-            display: inline-block;
-            min-width: 28px;
+        /* Overlay */
+        .panel-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(10, 10, 10, 0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            border-radius: 6px;
         }
 
-        .volume-cell, .apr-cell {
-            white-space: nowrap;
+        .panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
+        .panel-overlay .spinner {
+            width: 32px;
+            height: 32px;
+            border-width: 3px;
+            margin-bottom: 1rem;
+        }
+
+        .panel-overlay-text {
+            font-size: 0.9rem;
+            color: var(--secondary-text-color);
+            text-align: center;
+        }
+
+        /* Scrollbar */
         .table-container::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -1533,63 +823,11 @@
             background: var(--secondary-text-color);
         }
 
-        #debug-section {
-            margin-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            padding-top: 1rem;
-        }
-
-        .debug-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .debug-toggle {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            color: var(--secondary-text-color);
-            padding: 0.3rem 0.6rem;
-            border-radius: 2px;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-
-        .debug-toggle:hover {
-            background-color: var(--hover-bg-color);
-            color: var(--primary-text-color);
-        }
-
-        #debug-log {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            padding: 1rem;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 0.72rem;
-            max-height: 280px;
-            overflow-y: auto;
-            line-height: 1.5;
-        }
-
-        .log-error { color: var(--error-color); }
-        .log-warn { color: var(--warning-color); }
-        .log-success { color: var(--success-color); }
-        .log-info { color: var(--secondary-text-color); }
-        .log-gecko { color: var(--geckoterminal-color); }
-
-        @media (max-width: 1200px) {
-            #dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            header {
-                padding: 1rem;
-            }
-
+        /* Responsive */
+        @media (max-width: 900px) {
+            header { padding: 1rem; }
+            main { padding: 1rem; }
+            
             .header-content {
                 flex-direction: column;
                 align-items: flex-start;
@@ -1600,37 +838,20 @@
                 width: 100%;
             }
 
-            .header-left h1 {
-                font-size: 1.3rem;
-            }
-
-            main {
-                padding: 0.75rem;
-            }
-
-            .section-header {
+            .panel-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .section-controls {
+            .panel-controls {
                 width: 100%;
-                justify-content: space-between;
-            }
-
-            .pair-section {
-                min-height: 280px;
-                max-height: 400px;
+                justify-content: flex-start;
             }
 
             .pool-table th,
             .pool-table td {
-                padding: 0.45rem 0.5rem;
-                font-size: 0.78rem;
-            }
-
-            .pool-table .col-pool {
-                min-width: 150px;
+                padding: 0.5rem 0.6rem;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -1639,8 +860,8 @@
     <header>
         <div class="header-content">
             <div class="header-left">
-                <h1>High Utilization LP Dashboard</h1>
-                <p>Find heavily utilized LPs via GeckoTerminal. Ranks pools by Utilization % (Volume ÷ Liquidity × 100). APR estimated from volume × fee.</p>
+                <h1><span class="btc-icon">₿</span> BTC LP Utilization Dashboard</h1>
+                <p>Discover high-utilization Bitcoin liquidity pools. Ranked by Utilization % (Daily Volume ÷ Liquidity). APR estimated from 24h volume × fee tier.</p>
             </div>
             <div class="header-right">
                 <div class="header-controls">
@@ -1650,7 +871,7 @@
                             Initializing...
                         </span>
                     </div>
-                    <button id="refresh-btn" class="btn btn-sm">Refresh Data</button>
+                    <button id="refresh-btn" class="btn btn-sm">Refresh</button>
                 </div>
                 <div id="last-updated" style="font-size: 0.75rem; color: var(--secondary-text-color);"></div>
             </div>
@@ -1658,30 +879,64 @@
     </header>
 
     <main>
-        <div id="progress-container" class="hidden">
-            <div id="progress-bar"></div>
-        </div>
-
-        <div id="dashboard-grid"></div>
-        <div id="stablecoin-section-wrapper"></div>
-
-        <div id="debug-section" class="hidden">
-            <div class="debug-header">
-                <span style="font-size: 0.75rem; color: var(--secondary-text-color);">Debug Log</span>
-                <button id="clear-debug" class="debug-toggle">Clear</button>
+        <div class="main-panel" id="main-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="btc-icon">₿</span>
+                    <span>BTC Liquidity Pools</span>
+                    <span class="pool-count-badge" id="pool-count">0 pools</span>
+                </div>
+                <div class="panel-controls">
+                    <div class="load-status" id="load-status">
+                        <span class="status-badge quick">Quick Load</span>
+                        <button class="load-more-btn" id="load-full-btn">Load All Pools</button>
+                    </div>
+                    <div class="timeframe-toggle" id="timeframe-toggle">
+                        <button class="tf-btn active" data-tf="24h">24h</button>
+                        <button class="tf-btn" data-tf="7d">7d</button>
+                        <button class="tf-btn" data-tf="30d">30d</button>
+                    </div>
+                    <div class="network-selector" id="network-selector">
+                        <button class="network-btn" id="network-btn">
+                            <span>Networks</span>
+                            <span class="network-count-badge" id="network-badge">5</span>
+                            <span class="network-arrow">▼</span>
+                        </button>
+                        <div class="network-dropdown" id="network-dropdown"></div>
+                    </div>
+                </div>
             </div>
-            <div id="debug-log"></div>
+            <div class="panel-content">
+                <div class="table-container">
+                    <table class="pool-table">
+                        <thead>
+                            <tr>
+                                <th class="col-chain" data-sort="chain">Chain</th>
+                                <th class="col-protocol" data-sort="protocol">Protocol</th>
+                                <th class="col-type" data-sort="pairType">Type</th>
+                                <th class="col-pool" data-sort="name">Pool</th>
+                                <th class="col-fee" data-sort="fee">Fee</th>
+                                <th class="col-liquidity" data-sort="liquidity">Liquidity</th>
+                                <th class="col-volume" data-sort="displayVolume">Volume</th>
+                                <th class="col-util" data-sort="utilization">Util %</th>
+                                <th class="col-apr" data-sort="apr">APR <span class="apr-basis">(24h)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="pool-tbody"></tbody>
+                    </table>
+                    <div class="no-data hidden" id="no-data">No BTC pools found. Try adding more networks.</div>
+                </div>
+            </div>
+            <div class="panel-overlay" id="panel-overlay">
+                <div class="spinner"></div>
+                <div class="panel-overlay-text" id="overlay-text">Loading pools...</div>
+            </div>
         </div>
     </main>
 
     <footer>
-        <p>
-            Always DYOR.
-            <button id="debug-toggle" class="debug-toggle" style="margin-left: 1rem;">Toggle Debug</button>
-        </p>
-        <div class="data-sources">
-            <span class="source-gecko">● Powered by GeckoTerminal API — Real volume & historical OHLCV data</span>
-        </div>
+        <p>Always DYOR. Data refreshes on demand.</p>
+        <div class="data-source">● Powered by GeckoTerminal API</div>
     </footer>
 
     <script>
@@ -1692,69 +947,45 @@
         // CONFIGURATION
         // ============================================
         const CONFIG = {
-            GECKOTERMINAL_API: 'https://api.geckoterminal.com/api/v2',
+            API_BASE: 'https://api.geckoterminal.com/api/v2',
             RATE_LIMIT_MS: 2200,
             MAX_RETRIES: 3,
-            RETRY_DELAY_MS: 2000,
             TIMEOUT_MS: 25000,
             MIN_LIQUIDITY: 50000,
-            MIN_VOLUME_24H: 1000,
+            MIN_VOLUME: 1000,
             DEFAULT_FEE: 0.3,
-            POOLS_PER_PAGE: 20,
-            MAX_PAGES_PER_NETWORK: 5,
+            QUICK_PAGES: 2,
+            FULL_PAGES: 5,
 
-            INITIAL_NETWORKS: ['eth', 'arbitrum', 'base'],
+            // Top 5 networks by volume
+            INITIAL_NETWORKS: ['eth', 'arbitrum', 'base', 'polygon_pos', 'optimism'],
 
-            NETWORK_GROUPS: {
-                'L1 Networks': [
-                    { id: 'eth', name: 'Ethereum', initial: true },
+            NETWORKS: {
+                'L1 Chains': [
+                    { id: 'eth', name: 'Ethereum' },
                     { id: 'bsc', name: 'BSC' },
-                    { id: 'avax', name: 'Avalanche' },
-                    { id: 'fantom', name: 'Fantom' },
-                    { id: 'gnosis', name: 'Gnosis' }
+                    { id: 'avax', name: 'Avalanche' }
                 ],
-                'Ethereum L2s': [
-                    { id: 'arbitrum', name: 'Arbitrum', initial: true },
-                    { id: 'base', name: 'Base', initial: true },
+                'L2 & Rollups': [
+                    { id: 'arbitrum', name: 'Arbitrum' },
+                    { id: 'base', name: 'Base' },
                     { id: 'optimism', name: 'Optimism' },
+                    { id: 'polygon_pos', name: 'Polygon' },
                     { id: 'zksync', name: 'zkSync' },
                     { id: 'linea', name: 'Linea' },
-                    { id: 'mode', name: 'Mode' },
-                    { id: 'manta', name: 'Manta' },
                     { id: 'scroll', name: 'Scroll' },
                     { id: 'blast', name: 'Blast' }
                 ],
                 'Other': [
-                    { id: 'polygon_pos', name: 'Polygon' },
                     { id: 'mantle', name: 'Mantle' },
-                    { id: 'celo', name: 'Celo' }
-                ],
-                'Non-EVM': [
-                    { id: 'solana', name: 'Solana' },
-                    { id: 'sui', name: 'Sui' }
+                    { id: 'gnosis', name: 'Gnosis' }
                 ]
             },
 
             NETWORK_NAMES: {
-                eth: 'Ethereum',
-                arbitrum: 'Arbitrum',
-                optimism: 'Optimism',
-                base: 'Base',
-                polygon_pos: 'Polygon',
-                zksync: 'zkSync',
-                linea: 'Linea',
-                bsc: 'BSC',
-                avax: 'Avalanche',
-                fantom: 'Fantom',
-                gnosis: 'Gnosis',
-                mode: 'Mode',
-                mantle: 'Mantle',
-                manta: 'Manta',
-                scroll: 'Scroll',
-                blast: 'Blast',
-                celo: 'Celo',
-                solana: 'Solana',
-                sui: 'Sui'
+                eth: 'Ethereum', arbitrum: 'Arbitrum', optimism: 'Optimism', base: 'Base',
+                polygon_pos: 'Polygon', zksync: 'zkSync', linea: 'Linea', bsc: 'BSC',
+                avax: 'Avalanche', gnosis: 'Gnosis', mantle: 'Mantle', scroll: 'Scroll', blast: 'Blast'
             },
 
             EXPLORERS: {
@@ -1767,57 +998,48 @@
                 linea: 'https://lineascan.build/address/',
                 bsc: 'https://bscscan.com/address/',
                 avax: 'https://snowtrace.io/address/',
-                fantom: 'https://ftmscan.com/address/',
                 gnosis: 'https://gnosisscan.io/address/',
-                mode: 'https://explorer.mode.network/address/',
                 mantle: 'https://explorer.mantle.xyz/address/',
-                manta: 'https://pacific-explorer.manta.network/address/',
                 scroll: 'https://scrollscan.com/address/',
-                blast: 'https://blastscan.io/address/',
-                solana: 'https://solscan.io/account/',
-                sui: 'https://suiscan.xyz/mainnet/object/'
+                blast: 'https://blastscan.io/address/'
             },
 
-            // Search queries for discovering pools
-            SEARCHES: {
-                'btc-stable': ['WBTC USDC', 'WBTC USDT', 'cbBTC USDC', 'cbBTC USDT', 'tBTC USDC', 'WBTC DAI', 'BTC USDC', 'BTC USDT'],
-                'eth-stable': ['WETH USDC', 'WETH USDT', 'ETH USDC', 'ETH USDT', 'WETH DAI', 'ETH DAI', 'stETH USDC'],
-                'btc-eth': ['WBTC WETH', 'WBTC ETH', 'cbBTC WETH', 'cbBTC ETH', 'WBTC cbBTC', 'tBTC WETH'],
-                'wrapped': ['wstETH ETH', 'wstETH WETH', 'rETH WETH', 'rETH ETH', 'cbETH WETH', 'cbETH ETH', 'stETH ETH', 'frxETH WETH', 'swETH WETH', 'mETH WETH', 'ezETH WETH', 'weETH WETH', 'rsETH WETH'],
-                'stable-stable': ['USDC USDT', 'USDC DAI', 'USDT DAI', 'GHO USDC', 'GHO USDT', 'FRAX USDC', 'LUSD USDC', 'crvUSD USDC', 'USDS USDC', 'USDE USDT']
-            },
-
-            TIMEFRAMES: {
-                '24h': { days: 1, label: '24h' },
-                '7d': { days: 7, label: '7d' },
-                '30d': { days: 30, label: '30d' },
-                '1y': { days: 365, label: '1y' }
-            },
-
-            SECTIONS: [
-                { id: 'btc-stable', title: '<span class="token-btc">BTC</span> / Stablecoin', grid: true },
-                { id: 'eth-stable', title: '<span class="token-eth">ETH</span> / Stablecoin', grid: true },
-                { id: 'btc-eth', title: '<span class="token-btc">BTC</span> / <span class="token-eth">ETH</span>', grid: true },
-                { id: 'wrapped', title: 'Wrapped Twins', grid: true },
-                { id: 'stable-stable', title: 'Stablecoin Pairs', grid: false }
+            // BTC-focused searches
+            SEARCHES: [
+                'WBTC USDC', 'WBTC USDT', 'WBTC WETH', 'WBTC ETH', 'WBTC DAI',
+                'cbBTC USDC', 'cbBTC USDT', 'cbBTC WETH', 'cbBTC ETH',
+                'tBTC USDC', 'tBTC WETH', 'WBTC cbBTC', 'WBTC tBTC',
+                'BTC USDC', 'BTC USDT', 'BTC ETH'
             ],
 
-            ASSETS: {
-                BTC: ['btc', 'wbtc', 'cbbtc', 'tbtc', 'renbtc', 'sbtc', 'hbtc', 'wbtce', 'btcb', 'obtc', 'pbtc', 'ibtc', 'fbtc', 'lbtc', 'kbtc', 'ebtc', 'solvbtc', 'unibtc', 'pumpbtc', 'dlcbtc', 'stbtc', 'mbtc', 'xbtc', 'abtc', 'nbtc', 'dbtc', 'zbtc', 'ubtc', 'hemibtc', 'vbtc', 'yybtc', 'bbtc', 'gbtc', 'qbtc'],
-                ETH: ['eth', 'weth', 'steth', 'wsteth', 'reth', 'cbeth', 'wethe', 'ethb', 'seth', 'meth', 'oeth', 'frxeth', 'sfrxeth', 'sweth', 'ankreth', 'eeth', 'weeth', 'ezeth', 'rseth', 'pxeth', 'unieth', 'ethx', 'insteth', 'neth', 'oseth', 'mpeth', 'ineth', 'wbeth', 'rsweth', 'saeth', 'apxeth', 'ueth', 'wheth', 'zeth', 'heth', 'veth', 'aeth', 'deth', 'yeth', 'yyeth', 'geth', 'qeth'],
-                STABLE: ['usdc', 'usdt', 'dai', 'usdbc', 'frax', 'lusd', 'usds', 'crvusd', 'tusd', 'busd', 'gusd', 'usdp', 'usdd', 'pyusd', 'eusd', 'gho', 'mkusd', 'dola', 'susd', 'usd+', 'usdb', 'usdm', 'usde', 'usd0', 'fdusd', 'eur', 'eurt', 'eurc', 'ageur', 'ceur', 'usdk', 'usdn', 'mimatic', 'mai', 'alusd', 'mim', 'susdv2', 'susde', 'ousdt', 'ousdc', 'odai', 'wusdc', 'wusdt', 'wdai', 'usdce', 'usdtce', 'daie']
+            TIMEFRAMES: {
+                '24h': { days: 1 },
+                '7d': { days: 7 },
+                '30d': { days: 30 }
             },
 
-            EXCLUDED: new Set(['btcbull', 'btcbear', 'ethbull', 'ethbear', 'btc2x', 'eth2x', 'btc3x', 'eth3x', 'btcup', 'btcdown', 'ethup', 'ethdown', 'ethfi', 'etherfi', 'btcpay', 'ethpay', 'btcdao', 'ethdao', 'btcix', 'ethix', 'methane', 'methanol', 'ethanol', 'ethernet', 'synthesis', 'synthetic', 'aesthetics', 'bethel', 'beth', 'elizabeth', 'macbeth']),
+            // BTC variants
+            BTC_TOKENS: new Set([
+                'btc', 'wbtc', 'cbbtc', 'tbtc', 'renbtc', 'sbtc', 'hbtc', 'btcb',
+                'fbtc', 'lbtc', 'solvbtc', 'unibtc', 'pumpbtc', 'ebtc', 'mbtc'
+            ]),
 
-            STABLE_PAIRS: new Set(['usdc', 'usdt', 'gho', 'dai', 'usdbc', 'frax', 'lusd', 'usde', 'usds', 'crvusd'])
+            // ETH variants
+            ETH_TOKENS: new Set([
+                'eth', 'weth', 'steth', 'wsteth', 'reth', 'cbeth', 'meth', 'frxeth', 'weeth', 'ezeth'
+            ]),
+
+            // Stablecoins
+            STABLE_TOKENS: new Set([
+                'usdc', 'usdt', 'dai', 'usdbc', 'frax', 'lusd', 'usds', 'crvusd',
+                'tusd', 'busd', 'gusd', 'gho', 'pyusd', 'usde', 'fdusd'
+            ]),
+
+            // Excluded tokens
+            EXCLUDED: new Set([
+                'btcbull', 'btcbear', 'btc2x', 'btc3x', 'btcup', 'btcdown', 'btcpay'
+            ])
         };
-
-        // Build asset lookup
-        const ASSET_MAP = {};
-        Object.entries(CONFIG.ASSETS).forEach(([cls, tokens]) => {
-            tokens.forEach(t => ASSET_MAP[t.toLowerCase().replace(/\./g, '')] = cls);
-        });
 
         // ============================================
         // STATE
@@ -1825,46 +1047,21 @@
         const state = {
             pools: new Map(),
             loadedNetworks: new Set(),
+            selectedNetworks: [...CONFIG.INITIAL_NETWORKS],
+            pendingNetworks: [...CONFIG.INITIAL_NETWORKS],
             isLoading: false,
-            debugLogs: [],
-            apiCalls: 0,
-            lastApiCall: 0,
-            sections: {}
+            isFullLoad: false,
+            timeframe: '24h',
+            sortField: 'utilization',
+            sortDir: 'desc',
+            ohlcvCache: {},
+            lastApiCall: 0
         };
-
-        CONFIG.SECTIONS.forEach(s => {
-            state.sections[s.id] = {
-                networks: [...CONFIG.INITIAL_NETWORKS],
-                pendingNetworks: [...CONFIG.INITIAL_NETWORKS],
-                timeframe: '24h',
-                ohlcvCache: {},
-                sortField: 'utilization',
-                sortDir: 'desc'
-            };
-        });
 
         // ============================================
         // UTILITIES
         // ============================================
         const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-        function log(msg, type = 'info') {
-            const ts = new Date().toLocaleTimeString();
-            state.debugLogs.push({ ts, type, msg });
-            if (state.debugLogs.length > 500) state.debugLogs = state.debugLogs.slice(-400);
-            console.log(`[${ts}] [${type.toUpperCase()}] ${msg}`);
-            renderDebugLog();
-        }
-
-        function renderDebugLog() {
-            const el = document.getElementById('debug-log');
-            if (el) {
-                el.innerHTML = state.debugLogs.map(l =>
-                    `<div class="log-${l.type}">[${l.ts}] ${l.msg}</div>`
-                ).join('');
-                el.scrollTop = el.scrollHeight;
-            }
-        }
 
         function escapeHtml(str) {
             const div = document.createElement('div');
@@ -1879,129 +1076,115 @@
             return '$' + val.toFixed(0);
         }
 
-        function formatUtilization(util) {
-            const pct = util * 100;
+        function formatPercent(val) {
+            const pct = val * 100;
             if (pct >= 100) return pct.toFixed(0) + '%';
             if (pct >= 10) return pct.toFixed(1) + '%';
             return pct.toFixed(2) + '%';
         }
 
-        function updateHeaderStatus(msg, type = 'info', loading = false) {
-            const el = document.getElementById('header-status');
-            if (!el) return;
+        function normalize(sym) {
+            return sym ? sym.toLowerCase().replace(/\./g, '').trim() : '';
+        }
 
+        // ============================================
+        // UI UPDATES
+        // ============================================
+        function updateStatus(msg, loading = false) {
+            const el = document.getElementById('header-status');
             if (loading) {
-                el.innerHTML = `
-                    <span class="loading-indicator">
-                        <span class="spinner spinner-sm"></span>
-                        ${escapeHtml(msg)}
-                    </span>
-                `;
-            } else if (type === 'error') {
-                el.innerHTML = `<span class="error-indicator">${escapeHtml(msg)}</span>`;
-            } else if (type === 'success') {
-                const poolCount = state.pools.size;
-                const networkCount = state.loadedNetworks.size;
-                el.innerHTML = `
-                    <span class="pool-count">${poolCount}</span> pools from 
-                    <span class="network-count">${networkCount}</span> networks
-                `;
+                el.innerHTML = `<span class="loading-indicator"><span class="spinner spinner-sm"></span> ${escapeHtml(msg)}</span>`;
             } else {
-                el.innerHTML = escapeHtml(msg);
+                const count = state.pools.size;
+                const nets = state.loadedNetworks.size;
+                el.innerHTML = `<span class="pool-count">${count}</span> pools from <span class="network-count">${nets}</span> networks`;
             }
         }
 
-        function updateProgress(pct) {
-            const container = document.getElementById('progress-container');
-            const bar = document.getElementById('progress-bar');
-            if (pct > 0 && pct < 100) {
-                container.classList.remove('hidden');
-                bar.style.width = pct + '%';
+        function setOverlay(active, msg = 'Loading...') {
+            const overlay = document.getElementById('panel-overlay');
+            document.getElementById('overlay-text').textContent = msg;
+            overlay.classList.toggle('active', active);
+        }
+
+        function updateLoadStatus() {
+            const container = document.getElementById('load-status');
+            if (state.isFullLoad) {
+                container.innerHTML = `<span class="status-badge full">Full Data</span>`;
             } else {
-                container.classList.add('hidden');
-                bar.style.width = '0%';
+                container.innerHTML = `
+                    <span class="status-badge quick">Quick Load</span>
+                    <button class="load-more-btn" id="load-full-btn">Load All Pools</button>
+                `;
+                document.getElementById('load-full-btn').addEventListener('click', loadFullData);
             }
         }
 
         // ============================================
         // TOKEN FORMATTING
         // ============================================
-        function formatTokenSymbol(symbol) {
+        function formatToken(symbol) {
             if (!symbol) return '';
-            const original = symbol.trim();
-            const upper = original.toUpperCase();
-            const lower = original.toLowerCase();
+            const upper = symbol.toUpperCase();
+            const lower = normalize(symbol);
 
-            const btcIndex = upper.indexOf('BTC');
-            if (btcIndex !== -1 && !CONFIG.EXCLUDED.has(lower)) {
-                const prefix = original.substring(0, btcIndex).toLowerCase();
-                const suffix = original.substring(btcIndex + 3).toLowerCase();
-                let html = '';
-                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
-                html += `<span class="token-btc">BTC</span>`;
-                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
-                return html;
-            }
-
-            const ethIndex = upper.indexOf('ETH');
-            if (ethIndex !== -1 && !CONFIG.EXCLUDED.has(lower)) {
-                const prefix = original.substring(0, ethIndex).toLowerCase();
-                const suffix = original.substring(ethIndex + 3).toLowerCase();
-                let html = '';
-                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
-                html += `<span class="token-eth">ETH</span>`;
-                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
-                return html;
+            if (CONFIG.BTC_TOKENS.has(lower) || lower.includes('btc')) {
+                const idx = upper.indexOf('BTC');
+                if (idx !== -1) {
+                    const prefix = symbol.substring(0, idx).toLowerCase();
+                    const suffix = symbol.substring(idx + 3).toLowerCase();
+                    let html = prefix ? `<span class="token-prefix">${escapeHtml(prefix)}</span>` : '';
+                    html += `<span class="token-btc">BTC</span>`;
+                    html += suffix ? `<span class="token-prefix">${escapeHtml(suffix)}</span>` : '';
+                    return html;
+                }
             }
 
-            const normalized = lower.replace(/\./g, '');
-            if (normalized === 'usdc' || normalized === 'usdce') {
-                return `<span class="token-usdc">${escapeHtml(upper)}</span>`;
+            if (CONFIG.ETH_TOKENS.has(lower) || lower.includes('eth')) {
+                const idx = upper.indexOf('ETH');
+                if (idx !== -1) {
+                    const prefix = symbol.substring(0, idx).toLowerCase();
+                    const suffix = symbol.substring(idx + 3).toLowerCase();
+                    let html = prefix ? `<span class="token-prefix">${escapeHtml(prefix)}</span>` : '';
+                    html += `<span class="token-eth">ETH</span>`;
+                    html += suffix ? `<span class="token-prefix">${escapeHtml(suffix)}</span>` : '';
+                    return html;
+                }
             }
-            if (normalized === 'usdt' || normalized === 'usdtce' || normalized === 'usdte') {
-                return `<span class="token-usdt">${escapeHtml(upper)}</span>`;
-            }
-            if (normalized === 'dai' || normalized === 'daie') {
-                return `<span class="token-dai">${escapeHtml(upper)}</span>`;
-            }
-            if (ASSET_MAP[normalized] === 'STABLE') {
-                return `<span class="token-stable">${escapeHtml(upper)}</span>`;
-            }
+
+            if (lower === 'usdc' || lower === 'usdce') return `<span class="token-usdc">${upper}</span>`;
+            if (lower === 'usdt') return `<span class="token-usdt">${upper}</span>`;
+            if (lower === 'dai') return `<span class="token-dai">${upper}</span>`;
+            if (CONFIG.STABLE_TOKENS.has(lower)) return `<span class="token-stable">${upper}</span>`;
 
             return escapeHtml(upper);
         }
 
-        function colorizePoolName(name) {
+        function formatPoolName(name) {
             if (!name) return '';
-            const parts = name.split(/(\s*[\/\-]\s*)/);
-            return parts.map(part => {
-                const trimmed = part.trim();
+            return name.split(/(\s*[\/\-]\s*)/).map(part => {
                 if (/^^[\/\-\s]+$/.test(part)) return escapeHtml(part);
-                if (/^^\d+\.?\d*%?$/.test(trimmed)) {
-                    return `<span style="opacity:0.6">${escapeHtml(trimmed)}</span>`;
-                }
-                return formatTokenSymbol(trimmed);
+                if (/^^\d+\.?\d*%?$/.test(part.trim())) return `<span style="opacity:0.6">${escapeHtml(part)}</span>`;
+                return formatToken(part.trim());
             }).join('');
         }
 
         // ============================================
-        // GECKOTERMINAL API CLIENT
+        // API CLIENT
         // ============================================
-        async function geckoApiCall(endpoint, params = {}) {
-            const now = Date.now();
-            const elapsed = now - state.lastApiCall;
+        async function apiCall(endpoint, params = {}) {
+            const elapsed = Date.now() - state.lastApiCall;
             if (elapsed < CONFIG.RATE_LIMIT_MS) {
                 await sleep(CONFIG.RATE_LIMIT_MS - elapsed);
             }
             state.lastApiCall = Date.now();
-            state.apiCalls++;
 
-            const url = new URL(CONFIG.GECKOTERMINAL_API + endpoint);
+            const url = new URL(CONFIG.API_BASE + endpoint);
             Object.entries(params).forEach(([k, v]) => {
                 if (v != null) url.searchParams.set(k, String(v));
             });
 
-            for (let attempt = 1; attempt <= CONFIG.MAX_RETRIES; attempt++) {
+            for (let i = 1; i <= CONFIG.MAX_RETRIES; i++) {
                 try {
                     const ctrl = new AbortController();
                     const timeout = setTimeout(() => ctrl.abort(), CONFIG.TIMEOUT_MS);
@@ -2012,95 +1195,61 @@
                     clearTimeout(timeout);
 
                     if (res.status === 429) {
-                        log('GeckoTerminal rate limited, waiting 10s...', 'warn');
+                        console.warn('Rate limited, waiting...');
                         await sleep(10000);
                         continue;
                     }
-
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     return await res.json();
                 } catch (err) {
-                    log(`GeckoTerminal error (${attempt}/${CONFIG.MAX_RETRIES}): ${err.message}`, 'warn');
-                    if (attempt < CONFIG.MAX_RETRIES) {
-                        await sleep(CONFIG.RETRY_DELAY_MS * attempt);
-                    }
+                    console.warn(`API error (${i}/${CONFIG.MAX_RETRIES}):`, err.message);
+                    if (i < CONFIG.MAX_RETRIES) await sleep(2000 * i);
                 }
             }
             return null;
         }
 
-        async function fetchTopPools(network, page = 1) {
-            const res = await geckoApiCall(`/networks/${network}/pools`, {
+        async function fetchPools(network, page = 1) {
+            return await apiCall(`/networks/${network}/pools`, {
                 page,
                 include: 'dex,base_token,quote_token'
             });
-            return res;
         }
 
-        async function searchPools(query, network = null) {
-            const params = { query };
-            if (network) params.network = network;
-            const res = await geckoApiCall('/search/pools', params);
+        async function searchPools(query, network) {
+            const res = await apiCall('/search/pools', { query, network });
             return res?.data || [];
         }
 
         async function fetchOHLCV(network, address, days) {
-            const res = await geckoApiCall(`/networks/${network}/pools/${address}/ohlcv/day`, {
+            const res = await apiCall(`/networks/${network}/pools/${address}/ohlcv/day`, {
                 aggregate: 1,
                 limit: Math.min(days, 365),
                 currency: 'usd'
             });
-
-            if (!res) return { volume: null };
-
+            if (!res) return null;
             const list = res.data?.attributes?.ohlcv_list || [];
-            if (list.length === 0) return { volume: null };
-
-            let vol = 0;
-            list.forEach(c => {
-                if (c && c[5]) vol += parseFloat(c[5]) || 0;
-            });
-            return { volume: vol > 0 ? vol : null };
+            return list.reduce((sum, c) => sum + (parseFloat(c?.[5]) || 0), 0) || null;
         }
 
         // ============================================
         // POOL PROCESSING
         // ============================================
-        function normalizeSymbol(sym) {
-            return sym ? sym.toLowerCase().replace(/\./g, '').trim() : '';
-        }
-
-        function getAssetClass(sym) {
-            if (!sym) return null;
-            const n = normalizeSymbol(sym);
+        function getTokenClass(sym) {
+            const n = normalize(sym);
             if (CONFIG.EXCLUDED.has(n)) return null;
-            return ASSET_MAP[n] || null;
+            if (CONFIG.BTC_TOKENS.has(n) || n.includes('btc')) return 'BTC';
+            if (CONFIG.ETH_TOKENS.has(n) || n.includes('eth')) return 'ETH';
+            if (CONFIG.STABLE_TOKENS.has(n)) return 'STABLE';
+            return null;
         }
 
-        function isStablePair(sym) {
-            return CONFIG.STABLE_PAIRS.has(normalizeSymbol(sym));
-        }
-
-        function getPairType(baseAsset, quoteAsset, baseSym, quoteSym) {
-            if (!baseAsset || !quoteAsset) return null;
-
-            // Check stable-stable first
-            if (isStablePair(baseSym) && isStablePair(quoteSym)) {
-                if (normalizeSymbol(baseSym) !== normalizeSymbol(quoteSym)) {
-                    return 'stable-stable';
-                }
-            }
-
-            // Same asset class = wrapped twins
-            if (baseAsset === quoteAsset) {
-                return (baseAsset === 'BTC' || baseAsset === 'ETH') ? 'wrapped' : null;
-            }
-
-            const sorted = [baseAsset, quoteAsset].sort().join('-');
-            if (sorted === 'BTC-STABLE') return 'btc-stable';
-            if (sorted === 'ETH-STABLE') return 'eth-stable';
-            if (sorted === 'BTC-ETH') return 'btc-eth';
-
+        function getBtcPairType(baseClass, quoteClass) {
+            if (baseClass === 'BTC' && quoteClass === 'BTC') return 'wrapped';
+            if (baseClass === 'BTC' && quoteClass === 'STABLE') return 'stable';
+            if (baseClass === 'STABLE' && quoteClass === 'BTC') return 'stable';
+            if (baseClass === 'BTC' && quoteClass === 'ETH') return 'eth';
+            if (baseClass === 'ETH' && quoteClass === 'BTC') return 'eth';
             return null;
         }
 
@@ -2116,74 +1265,62 @@
             return null;
         }
 
-        function normalizeGeckoPool(poolData, included = [], network) {
-            if (!poolData || !poolData.attributes) return null;
-
-            const attr = poolData.attributes;
+        function processPool(data, included = [], network) {
+            if (!data?.attributes) return null;
+            const attr = data.attributes;
             const address = attr.address;
             if (!address) return null;
 
-            // Find base and quote tokens from included data
-            const baseTokenRef = poolData.relationships?.base_token?.data;
-            const quoteTokenRef = poolData.relationships?.quote_token?.data;
-            const dexRef = poolData.relationships?.dex?.data;
+            // Get token info
+            const baseRef = data.relationships?.base_token?.data;
+            const quoteRef = data.relationships?.quote_token?.data;
+            const dexRef = data.relationships?.dex?.data;
 
             let baseSym = null, quoteSym = null, protocol = 'Unknown';
 
-            if (included && included.length > 0) {
-                const baseToken = included.find(i => i.type === 'token' && i.id === baseTokenRef?.id);
-                const quoteToken = included.find(i => i.type === 'token' && i.id === quoteTokenRef?.id);
+            if (included.length > 0) {
+                const baseToken = included.find(i => i.type === 'token' && i.id === baseRef?.id);
+                const quoteToken = included.find(i => i.type === 'token' && i.id === quoteRef?.id);
                 const dex = included.find(i => i.type === 'dex' && i.id === dexRef?.id);
-
                 baseSym = baseToken?.attributes?.symbol;
                 quoteSym = quoteToken?.attributes?.symbol;
                 protocol = dex?.attributes?.name || dexRef?.id || 'Unknown';
             }
 
-            // Fallback: parse from pool name
+            // Fallback: parse from name
             if (!baseSym || !quoteSym) {
-                const name = attr.name || '';
-                const parts = name.split(/[\s\/\-]+/).filter(p => p && !/^^\d/.test(p) && p !== '%');
-                if (parts.length >= 2) {
-                    baseSym = baseSym || parts[0];
-                    quoteSym = quoteSym || parts[1];
-                }
+                const parts = (attr.name || '').split(/[\s\/\-]+/).filter(p => p && !/^^\d/.test(p));
+                baseSym = baseSym || parts[0];
+                quoteSym = quoteSym || parts[1];
             }
 
             if (!baseSym || !quoteSym) return null;
-            if (CONFIG.EXCLUDED.has(normalizeSymbol(baseSym)) || CONFIG.EXCLUDED.has(normalizeSymbol(quoteSym))) return null;
 
-            const baseAsset = getAssetClass(baseSym);
-            const quoteAsset = getAssetClass(quoteSym);
-            if (!baseAsset && !quoteAsset) return null;
+            // Check if it's a BTC pair
+            const baseClass = getTokenClass(baseSym);
+            const quoteClass = getTokenClass(quoteSym);
+            if (baseClass !== 'BTC' && quoteClass !== 'BTC') return null;
 
-            const pairType = getPairType(baseAsset, quoteAsset, baseSym, quoteSym);
+            const pairType = getBtcPairType(baseClass, quoteClass);
             if (!pairType) return null;
 
             const liquidity = parseFloat(attr.reserve_in_usd) || 0;
             const volume24h = parseFloat(attr.volume_usd?.h24) || 0;
+
+            if (liquidity < CONFIG.MIN_LIQUIDITY || volume24h < CONFIG.MIN_VOLUME) return null;
+
             const fee = extractFee(attr.name) || CONFIG.DEFAULT_FEE;
-
-            // Build pool name
             let poolName = `${baseSym} / ${quoteSym}`;
-            if (fee !== CONFIG.DEFAULT_FEE) {
-                poolName += ` ${fee}%`;
-            }
+            if (fee !== CONFIG.DEFAULT_FEE) poolName += ` ${fee}%`;
 
-            // Clean up protocol name
-            protocol = protocol.replace(/_/g, ' ').split(' ').map(w => 
-                w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-            ).join(' ');
-
-            const uniqueId = `${network}_${address.toLowerCase()}`;
+            protocol = protocol.replace(/_/g, ' ').split(' ')
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 
             return {
-                id: uniqueId,
+                id: `${network}_${address.toLowerCase()}`,
                 name: poolName,
                 baseSym,
                 quoteSym,
-                baseAsset,
-                quoteAsset,
                 pairType,
                 liquidity,
                 volume24h,
@@ -2194,125 +1331,197 @@
                 protocol,
                 address,
                 poolUrl: `https://www.geckoterminal.com/${network}/pools/${address}`,
-                explorerUrl: CONFIG.EXPLORERS[network] ? CONFIG.EXPLORERS[network] + address : '',
-                dataSource: 'geckoterminal'
+                explorerUrl: CONFIG.EXPLORERS[network] ? CONFIG.EXPLORERS[network] + address : ''
             };
         }
 
         // ============================================
-        // DATA FETCHING
+        // DATA LOADING
         // ============================================
-        async function discoverPoolsForNetwork(network, onProgress) {
+        async function loadNetwork(network, pages, onProgress) {
             const discovered = new Map();
             let step = 0;
+            const totalSteps = pages + CONFIG.SEARCHES.length;
 
-            log(`[GeckoTerminal] Loading pools for ${network}...`, 'gecko');
+            // Fetch pool pages
+            for (let page = 1; page <= pages; page++) {
+                const res = await fetchPools(network, page);
+                if (!res?.data?.length) break;
 
-            // Step 1: Fetch top pools (multiple pages)
-            for (let page = 1; page <= CONFIG.MAX_PAGES_PER_NETWORK; page++) {
-                const res = await fetchTopPools(network, page);
-                if (!res || !res.data || res.data.length === 0) break;
-
-                res.data.forEach(pool => {
-                    const norm = normalizeGeckoPool(pool, res.included || [], network);
-                    if (norm && !discovered.has(norm.id) && !state.pools.has(norm.id)) {
-                        if (norm.liquidity >= CONFIG.MIN_LIQUIDITY && norm.volume24h >= CONFIG.MIN_VOLUME_24H) {
-                            discovered.set(norm.id, norm);
-                        }
+                res.data.forEach(p => {
+                    const pool = processPool(p, res.included || [], network);
+                    if (pool && !discovered.has(pool.id) && !state.pools.has(pool.id)) {
+                        discovered.set(pool.id, pool);
                     }
                 });
 
                 step++;
-                if (onProgress) onProgress((step / (CONFIG.MAX_PAGES_PER_NETWORK + Object.values(CONFIG.SEARCHES).flat().length)) * 100);
+                onProgress?.((step / totalSteps) * 100);
             }
 
-            // Step 2: Search for specific pair types
-            const allSearches = Object.values(CONFIG.SEARCHES).flat();
-            for (const query of allSearches) {
+            // Search queries
+            for (const query of CONFIG.SEARCHES) {
                 const pools = await searchPools(query, network);
-                pools.forEach(pool => {
-                    const norm = normalizeGeckoPool(pool, [], network);
-                    if (norm && !discovered.has(norm.id) && !state.pools.has(norm.id)) {
-                        if (norm.liquidity >= CONFIG.MIN_LIQUIDITY && norm.volume24h >= CONFIG.MIN_VOLUME_24H) {
-                            discovered.set(norm.id, norm);
-                        }
+                pools.forEach(p => {
+                    const pool = processPool(p, [], network);
+                    if (pool && !discovered.has(pool.id) && !state.pools.has(pool.id)) {
+                        discovered.set(pool.id, pool);
                     }
                 });
 
                 step++;
-                if (onProgress) onProgress((step / (CONFIG.MAX_PAGES_PER_NETWORK + allSearches.length)) * 100);
+                onProgress?.((step / totalSteps) * 100);
             }
 
             state.loadedNetworks.add(network);
-            log(`[GeckoTerminal] Found ${discovered.size} pools on ${network}`, 'gecko');
             return discovered;
         }
 
-        async function discoverPools(networks, onProgress) {
-            const allDiscovered = new Map();
-            let networksDone = 0;
+        async function loadNetworks(networks, pages) {
+            const all = new Map();
+            let done = 0;
 
-            for (const network of networks) {
-                if (state.loadedNetworks.has(network)) continue;
+            for (const net of networks) {
+                if (state.loadedNetworks.has(net) && pages === CONFIG.QUICK_PAGES) continue;
 
-                const discovered = await discoverPoolsForNetwork(network, pct => {
-                    const overall = ((networksDone + (pct / 100)) / networks.length) * 100;
-                    if (onProgress) onProgress(overall);
+                setOverlay(true, `Loading ${CONFIG.NETWORK_NAMES[net] || net}... (${done + 1}/${networks.length})`);
+
+                const discovered = await loadNetwork(net, pages, pct => {
+                    setOverlay(true, `Loading ${CONFIG.NETWORK_NAMES[net] || net}: ${Math.round(pct)}%`);
                 });
 
-                discovered.forEach((pool, id) => allDiscovered.set(id, pool));
-                networksDone++;
-
-                if (onProgress) onProgress((networksDone / networks.length) * 100);
+                discovered.forEach((p, id) => all.set(id, p));
+                done++;
             }
 
-            log(`[GeckoTerminal] Total discovered: ${allDiscovered.size} pools from ${networks.length} networks`, 'success');
-            return allDiscovered;
+            return all;
+        }
+
+        async function loadInitialData() {
+            if (state.isLoading) return;
+            state.isLoading = true;
+
+            document.getElementById('refresh-btn').disabled = true;
+            state.pools.clear();
+            state.loadedNetworks.clear();
+            state.ohlcvCache = {};
+            state.isFullLoad = false;
+            state.timeframe = '24h';
+            state.selectedNetworks = [...CONFIG.INITIAL_NETWORKS];
+
+            setOverlay(true, 'Loading BTC pools...');
+            updateStatus('Loading...', true);
+
+            try {
+                const discovered = await loadNetworks(CONFIG.INITIAL_NETWORKS, CONFIG.QUICK_PAGES);
+                discovered.forEach((p, id) => state.pools.set(id, p));
+
+                renderTable();
+                updateStatus();
+                updateLoadStatus();
+                updateNetworkBadge();
+                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+            } catch (err) {
+                console.error('Load error:', err);
+                updateStatus('Error loading data');
+            } finally {
+                state.isLoading = false;
+                document.getElementById('refresh-btn').disabled = false;
+                setOverlay(false);
+            }
+        }
+
+        async function loadFullData() {
+            if (state.isLoading || state.isFullLoad) return;
+            state.isLoading = true;
+
+            const btn = document.getElementById('load-full-btn');
+            if (btn) btn.disabled = true;
+
+            setOverlay(true, 'Loading all BTC pools...');
+            updateStatus('Loading full data...', true);
+
+            try {
+                // Clear and reload with full pages
+                const networks = [...state.selectedNetworks];
+                state.loadedNetworks.clear();
+
+                const discovered = await loadNetworks(networks, CONFIG.FULL_PAGES);
+                discovered.forEach((p, id) => state.pools.set(id, p));
+
+                state.isFullLoad = true;
+                renderTable();
+                updateStatus();
+                updateLoadStatus();
+            } catch (err) {
+                console.error('Full load error:', err);
+            } finally {
+                state.isLoading = false;
+                setOverlay(false);
+            }
         }
 
         // ============================================
-        // FILTERING & SORTING
+        // OHLCV FETCHING
         // ============================================
-        function getPoolsForSection(sectionId) {
-            const sec = state.sections[sectionId];
-            const pools = [];
+        async function fetchTimeframeData(timeframe) {
+            if (timeframe === '24h') return;
 
-            state.pools.forEach(pool => {
-                if (pool.pairType !== sectionId) return;
-                if (!sec.networks.includes(pool.chainId)) return;
-                if (pool.liquidity < CONFIG.MIN_LIQUIDITY) return;
-                if (pool.volume24h < CONFIG.MIN_VOLUME_24H) return;
-                pools.push({ ...pool });
+            const days = CONFIG.TIMEFRAMES[timeframe].days;
+            const pools = getFilteredPools();
+            const toFetch = pools.filter(p => {
+                const key = `${p.id}_${timeframe}`;
+                return state.ohlcvCache[key] === undefined;
             });
 
+            if (toFetch.length === 0) return;
+
+            let done = 0;
+            for (const pool of toFetch) {
+                setOverlay(true, `Fetching ${days}d volume: ${done + 1}/${toFetch.length}`);
+
+                const vol = await fetchOHLCV(pool.chainId, pool.address, days);
+                const key = `${pool.id}_${timeframe}`;
+                state.ohlcvCache[key] = vol;
+
+                const cached = state.pools.get(pool.id);
+                if (cached) cached.volumeData[timeframe] = vol;
+
+                done++;
+            }
+        }
+
+        // ============================================
+        // FILTERING & METRICS
+        // ============================================
+        function getFilteredPools() {
+            const pools = [];
+            state.pools.forEach(p => {
+                if (!state.selectedNetworks.includes(p.chainId)) return;
+                pools.push({ ...p });
+            });
             return pools;
         }
 
         function calculateMetrics(pool, timeframe) {
             const days = CONFIG.TIMEFRAMES[timeframe].days;
-            const displayVol = pool.volumeData[timeframe];
+            const vol = pool.volumeData[timeframe];
 
-            if (displayVol == null || displayVol <= 0) {
+            if (vol == null || vol <= 0) {
                 pool.displayVolume = null;
                 pool.utilization = null;
-                pool.apr = null;
-                pool.hasRealData = false;
-                return pool;
-            }
-
-            pool.displayVolume = displayVol;
-            pool.hasRealData = true;
-
-            const dailyVolume = displayVol / days;
-            pool.utilization = pool.liquidity > 0 ? dailyVolume / pool.liquidity : 0;
-
-            if (pool.liquidity > 0) {
-                const feesEarned = displayVol * (pool.fee / 100);
-                const annualizedFees = (feesEarned * 365) / days;
-                pool.apr = (annualizedFees / pool.liquidity) * 100;
+                pool.hasData = false;
             } else {
-                pool.apr = 0;
+                pool.displayVolume = vol;
+                pool.hasData = true;
+                pool.utilization = pool.liquidity > 0 ? (vol / days) / pool.liquidity : 0;
             }
+
+            // APR always from 24h
+            const vol24 = pool.volumeData['24h'] || pool.volume24h || 0;
+            pool.apr = pool.liquidity > 0 && vol24 > 0
+                ? (vol24 * (pool.fee / 100) * 365 / pool.liquidity) * 100
+                : null;
 
             return pool;
         }
@@ -2326,53 +1535,6 @@
                 if (bv == null) bv = dir === 'asc' ? Infinity : -Infinity;
                 return dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
             });
-        }
-
-        // ============================================
-        // OHLCV FETCHING
-        // ============================================
-        async function fetchOHLCVForSection(sectionId, timeframe) {
-            if (timeframe === '24h') return;
-
-            const sec = state.sections[sectionId];
-            const pools = getPoolsForSection(sectionId);
-            const days = CONFIG.TIMEFRAMES[timeframe].days;
-
-            const poolsToFetch = pools.filter(pool => {
-                const key = `${pool.id}_${timeframe}`;
-                return sec.ohlcvCache[key] === undefined;
-            });
-
-            log(`[${sectionId}] Fetching ${timeframe} volume for ${poolsToFetch.length} pools...`, 'gecko');
-
-            let fetched = 0;
-            for (const pool of poolsToFetch) {
-                const key = `${pool.id}_${timeframe}`;
-                setSectionLoading(sectionId, true, `Fetching ${days}d volume: ${fetched + 1}/${poolsToFetch.length} pools...`);
-
-                const result = await fetchOHLCV(pool.chainId, pool.address, days);
-                sec.ohlcvCache[key] = result.volume;
-
-                const cached = state.pools.get(pool.id);
-                if (cached) {
-                    cached.volumeData[timeframe] = result.volume;
-                }
-
-                fetched++;
-            }
-
-            // Update from cache
-            pools.forEach(pool => {
-                const key = `${pool.id}_${timeframe}`;
-                if (sec.ohlcvCache[key] !== undefined) {
-                    const cached = state.pools.get(pool.id);
-                    if (cached) {
-                        cached.volumeData[timeframe] = sec.ohlcvCache[key];
-                    }
-                }
-            });
-
-            log(`[${sectionId}] Completed ${timeframe} volume fetch`, 'success');
         }
 
         // ============================================
@@ -2401,25 +1563,35 @@
             return 'fee-high';
         }
 
-        function renderPoolRow(pool, tf) {
+        function getTypeLabel(type) {
+            switch (type) {
+                case 'stable': return '<span class="type-badge stable">Stable</span>';
+                case 'eth': return '<span class="type-badge eth">ETH</span>';
+                case 'wrapped': return '<span class="type-badge wrapped">Wrapped</span>';
+                default: return '';
+            }
+        }
+
+        function renderRow(pool, tf) {
             const liqPct = Math.min(100, Math.max(0,
                 (Math.log10(Math.max(pool.liquidity, CONFIG.MIN_LIQUIDITY)) - Math.log10(CONFIG.MIN_LIQUIDITY)) /
                 (Math.log10(500000000) - Math.log10(CONFIG.MIN_LIQUIDITY)) * 100
             ));
 
             const tfInd = tf !== '24h' ? `<span class="tf-indicator">(${tf})</span>` : '';
-            const volumeDisplay = pool.displayVolume != null ? formatUsd(pool.displayVolume) : 'N/A';
-            const utilDisplay = pool.utilization != null ? formatUtilization(pool.utilization) : 'N/A';
+            const volDisplay = pool.displayVolume != null ? formatUsd(pool.displayVolume) : 'N/A';
+            const utilDisplay = pool.utilization != null ? formatPercent(pool.utilization) : 'N/A';
             const aprDisplay = pool.apr != null ? pool.apr.toFixed(1) + '%' : 'N/A';
 
             return `
                 <tr>
                     <td class="col-chain">${escapeHtml(pool.chain)}</td>
-                    <td class="col-protocol"><span class="protocol-badge" title="${escapeHtml(pool.protocol)}">${escapeHtml(pool.protocol)}</span></td>
+                    <td class="col-protocol"><span class="protocol-badge">${escapeHtml(pool.protocol)}</span></td>
+                    <td class="col-type">${getTypeLabel(pool.pairType)}</td>
                     <td class="col-pool">
                         <div class="pool-cell">
-                            <a href="${escapeHtml(pool.poolUrl)}" target="_blank" class="pool-link">${colorizePoolName(pool.name)}</a>
-                            <a href="${pool.explorerUrl || '#'}" target="_blank" class="explorer-link" title="View contract" ${!pool.explorerUrl ? 'style="visibility:hidden"' : ''}>📋</a>
+                            <a href="${escapeHtml(pool.poolUrl)}" target="_blank" class="pool-link">${formatPoolName(pool.name)}</a>
+                            ${pool.explorerUrl ? `<a href="${escapeHtml(pool.explorerUrl)}" target="_blank" class="explorer-link" title="View contract">📋</a>` : ''}
                         </div>
                     </td>
                     <td class="col-fee"><span class="fee-badge ${getFeeClass(pool.fee)}">${pool.fee.toFixed(2)}%</span></td>
@@ -2427,161 +1599,81 @@
                         <div class="liquidity-bar" style="width:${liqPct}%"></div>
                         <span class="liquidity-value">${formatUsd(pool.liquidity)}</span>
                     </td>
-                    <td class="col-volume volume-cell">${volumeDisplay}${tfInd}</td>
+                    <td class="col-volume">${volDisplay}${tfInd}</td>
                     <td class="col-util utilization-value ${getUtilClass(pool.utilization)}">${utilDisplay}</td>
-                    <td class="col-apr apr-cell apr-value ${getAprClass(pool.apr)}">${aprDisplay}${tfInd}</td>
+                    <td class="col-apr apr-value ${getAprClass(pool.apr)}">${aprDisplay}</td>
                 </tr>
             `;
         }
 
-        function renderSection(sectionId) {
-            const sec = state.sections[sectionId];
-            let pools = getPoolsForSection(sectionId)
-                .map(p => calculateMetrics(p, sec.timeframe));
+        function renderTable() {
+            let pools = getFilteredPools().map(p => calculateMetrics(p, state.timeframe));
 
-            if (sec.timeframe !== '24h') {
-                pools = pools.filter(p => p.hasRealData);
+            if (state.timeframe !== '24h') {
+                pools = pools.filter(p => p.hasData);
             }
 
-            const sorted = sortPools(pools, sec.sortField, sec.sortDir);
+            const sorted = sortPools(pools, state.sortField, state.sortDir);
 
-            const tbody = document.getElementById(`${sectionId}-tbody`);
-            const noData = document.getElementById(`${sectionId}-nodata`);
-            const count = document.getElementById(`${sectionId}-count`);
+            const tbody = document.getElementById('pool-tbody');
+            const noData = document.getElementById('no-data');
+            const count = document.getElementById('pool-count');
 
-            if (count) count.textContent = `(${sorted.length})`;
+            count.textContent = `${sorted.length} pools`;
 
             if (sorted.length === 0) {
-                if (tbody) tbody.innerHTML = '';
-                if (noData) noData.classList.remove('hidden');
+                tbody.innerHTML = '';
+                noData.classList.remove('hidden');
             } else {
-                if (tbody) tbody.innerHTML = sorted.map(p => renderPoolRow(p, sec.timeframe)).join('');
-                if (noData) noData.classList.add('hidden');
+                tbody.innerHTML = sorted.map(p => renderRow(p, state.timeframe)).join('');
+                noData.classList.add('hidden');
             }
 
-            updateNetworkBadge(sectionId);
-        }
-
-        function renderAllSections() {
-            CONFIG.SECTIONS.forEach(s => renderSection(s.id));
-        }
-
-        function setSectionLoading(sectionId, loading, msg = 'Loading...') {
-            const overlay = document.getElementById(`${sectionId}-overlay`);
-            const text = overlay?.querySelector('.section-overlay-text');
-            if (text) text.textContent = msg;
-            overlay?.classList.toggle('active', loading);
-        }
-
-        // ============================================
-        // SECTION HTML GENERATION
-        // ============================================
-        function generateSectionHTML(config) {
-            const tfButtons = Object.keys(CONFIG.TIMEFRAMES).map(tf =>
-                `<button class="tf-btn${tf === '24h' ? ' active' : ''}" data-tf="${tf}">${tf}</button>`
-            ).join('');
-
-            return `
-                <div class="pair-section${config.grid ? '' : ' full-width'}" id="${config.id}-section">
-                    <div class="section-header">
-                        <div class="section-title">
-                            ${config.title}
-                            <span class="pool-count" id="${config.id}-count">(0)</span>
-                        </div>
-                        <div class="section-controls">
-                            <div class="timeframe-toggle" data-section="${config.id}">
-                                ${tfButtons}
-                            </div>
-                            <div class="network-selector" data-section="${config.id}">
-                                <button class="network-btn" type="button">
-                                    <span>Networks</span>
-                                    <span class="network-badge" id="${config.id}-netbadge">3</span>
-                                    <span class="network-arrow">▼</span>
-                                </button>
-                                <div class="network-dropdown" id="${config.id}-dropdown"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="section-content">
-                        <div class="table-container">
-                            <table class="pool-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-chain" data-sort="chain" data-section="${config.id}">Chain</th>
-                                        <th class="col-protocol" data-sort="protocol" data-section="${config.id}">Protocol</th>
-                                        <th class="col-pool" data-sort="name" data-section="${config.id}">Pool</th>
-                                        <th class="col-fee" data-sort="fee" data-section="${config.id}">Fee</th>
-                                        <th class="col-liquidity" data-sort="liquidity" data-section="${config.id}">Liquidity</th>
-                                        <th class="col-volume" data-sort="displayVolume" data-section="${config.id}">Volume</th>
-                                        <th class="col-util" data-sort="utilization" data-section="${config.id}">Util %</th>
-                                        <th class="col-apr" data-sort="apr" data-section="${config.id}">Est. APR</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="${config.id}-tbody"></tbody>
-                            </table>
-                            <div class="no-data hidden" id="${config.id}-nodata">No pools found. Select more networks or check filters.</div>
-                        </div>
-                    </div>
-                    <div class="section-overlay" id="${config.id}-overlay">
-                        <div class="spinner"></div>
-                        <div class="section-overlay-text">Loading...</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function buildSections() {
-            const grid = document.getElementById('dashboard-grid');
-            const wrapper = document.getElementById('stablecoin-section-wrapper');
-
-            grid.innerHTML = '';
-            wrapper.innerHTML = '';
-
-            CONFIG.SECTIONS.forEach(s => {
-                const html = generateSectionHTML(s);
-                if (s.grid) {
-                    grid.insertAdjacentHTML('beforeend', html);
-                } else {
-                    wrapper.insertAdjacentHTML('beforeend', html);
+            // Update sort indicators
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.sort === state.sortField) {
+                    th.classList.add(`sort-${state.sortDir}`);
                 }
             });
         }
 
         // ============================================
-        // NETWORK DROPDOWN
+        // NETWORK SELECTOR
         // ============================================
-        function buildDropdownHTML(sectionId) {
-            const sec = state.sections[sectionId];
+        function buildDropdown() {
             let html = `
                 <div class="dropdown-header">
-                    <span>Filter Networks</span>
-                    <button type="button" class="select-loaded-btn">Select All Loaded</button>
+                    <span>Select Networks</span>
+                    <button id="select-all-loaded">Select All Loaded</button>
                 </div>
                 <div class="dropdown-content">
             `;
 
-            Object.entries(CONFIG.NETWORK_GROUPS).forEach(([group, nets]) => {
+            Object.entries(CONFIG.NETWORKS).forEach(([group, nets]) => {
                 html += `<div class="network-group-label">${group}</div>`;
                 nets.forEach(net => {
-                    const isLoaded = state.loadedNetworks.has(net.id);
+                    const loaded = state.loadedNetworks.has(net.id);
+                    const selected = state.pendingNetworks.includes(net.id);
                     html += `
-                        <div class="network-item" data-net="${net.id}">
-                            <div class="network-checkbox"></div>
+                        <div class="network-item ${selected ? 'selected' : ''} ${!loaded ? 'not-loaded' : ''}" data-net="${net.id}">
+                            <div class="network-checkbox">${selected ? '✓' : ''}</div>
                             <span class="network-name">${net.name}</span>
-                            ${net.initial ? '<span class="network-tag">Initial</span>' : ''}
-                            ${isLoaded ? '<span class="loaded-tag">Loaded</span>' : '<span class="not-loaded-tag">Click to load</span>'}
+                            <span class="network-tag ${loaded ? 'loaded' : 'not-loaded'}">${loaded ? 'Loaded' : 'Not loaded'}</span>
                         </div>
                     `;
                 });
             });
 
+            const toLoad = state.pendingNetworks.filter(n => !state.loadedNetworks.has(n)).length;
+
             html += `
                 </div>
                 <div class="dropdown-footer">
-                    <div class="dropdown-footer-info" id="${sectionId}-footer-info"></div>
+                    <div class="dropdown-footer-info">${toLoad > 0 ? `<span class="to-load">${toLoad} to load</span>` : ''}</div>
                     <div class="dropdown-footer-buttons">
-                        <button class="btn cancel-btn">Cancel</button>
-                        <button class="btn btn-primary apply-btn">Apply</button>
+                        <button class="btn btn-sm" id="dropdown-cancel">Cancel</button>
+                        <button class="btn btn-sm btn-primary" id="dropdown-apply">Apply</button>
                     </div>
                 </div>
             `;
@@ -2589,336 +1681,156 @@
             return html;
         }
 
-        function updateNetworkBadge(sectionId) {
-            const badge = document.getElementById(`${sectionId}-netbadge`);
-            const sec = state.sections[sectionId];
-            if (badge) {
-                badge.textContent = sec.networks.filter(n => state.loadedNetworks.has(n)).length;
-            }
+        function updateNetworkBadge() {
+            document.getElementById('network-badge').textContent = state.selectedNetworks.length;
         }
 
-        function updateDropdownUI(sectionId) {
-            const dropdown = document.getElementById(`${sectionId}-dropdown`);
-            const sec = state.sections[sectionId];
-            const footerInfo = document.getElementById(`${sectionId}-footer-info`);
+        function openDropdown() {
+            const dropdown = document.getElementById('network-dropdown');
+            const btn = document.getElementById('network-btn');
 
-            let networksToLoad = 0;
+            state.pendingNetworks = [...state.selectedNetworks];
+            dropdown.innerHTML = buildDropdown();
+            dropdown.classList.add('open');
+            btn.classList.add('open');
 
-            dropdown.querySelectorAll('.network-item').forEach(item => {
-                const netId = item.dataset.net;
-                const selected = sec.pendingNetworks.includes(netId);
-                const loaded = state.loadedNetworks.has(netId);
-
-                item.classList.toggle('selected', selected);
-                item.classList.toggle('not-loaded', !loaded);
-                item.querySelector('.network-checkbox').textContent = selected ? '✓' : '';
-
-                // Update tags
-                const loadedTag = item.querySelector('.loaded-tag');
-                const notLoadedTag = item.querySelector('.not-loaded-tag');
-
-                if (loaded) {
-                    if (!loadedTag) {
-                        const newTag = document.createElement('span');
-                        newTag.className = 'loaded-tag';
-                        newTag.textContent = 'Loaded';
-                        item.appendChild(newTag);
-                    }
-                    if (notLoadedTag) notLoadedTag.remove();
-                } else {
-                    if (!notLoadedTag) {
-                        const newTag = document.createElement('span');
-                        newTag.className = 'not-loaded-tag';
-                        newTag.textContent = 'Click to load';
-                        item.appendChild(newTag);
-                    }
-                    if (loadedTag) loadedTag.remove();
-                    if (selected) networksToLoad++;
-                }
-            });
-
-            if (footerInfo) {
-                if (networksToLoad > 0) {
-                    footerInfo.innerHTML = `<span class="to-load">${networksToLoad} network(s) will be loaded</span>`;
-                } else {
-                    footerInfo.textContent = '';
-                }
-            }
-        }
-
-        function positionDropdown(btn, dropdown) {
+            // Position
             const rect = btn.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const dropdownWidth = 320;
-
             dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.right = Math.max(10, window.innerWidth - rect.right) + 'px';
 
-            if (rect.right < dropdownWidth + 20) {
-                dropdown.style.left = Math.max(10, rect.left) + 'px';
-                dropdown.style.right = 'auto';
-            } else {
-                dropdown.style.right = Math.max(10, viewportWidth - rect.right) + 'px';
-                dropdown.style.left = 'auto';
-            }
-
-            requestAnimationFrame(() => {
-                const dRect = dropdown.getBoundingClientRect();
-                if (dRect.bottom > window.innerHeight - 20) {
-                    dropdown.style.top = 'auto';
-                    dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-                }
-            });
-        }
-
-        function closeAllDropdowns() {
-            document.querySelectorAll('.network-dropdown.open').forEach(d => d.classList.remove('open'));
-            document.querySelectorAll('.network-btn.open').forEach(b => b.classList.remove('open'));
-        }
-
-        function initNetworkSelectors() {
-            CONFIG.SECTIONS.forEach(s => {
-                const dropdown = document.getElementById(`${s.id}-dropdown`);
-                if (dropdown) dropdown.innerHTML = buildDropdownHTML(s.id);
-            });
-
-            document.querySelectorAll('.network-selector').forEach(sel => {
-                const sectionId = sel.dataset.section;
-                const btn = sel.querySelector('.network-btn');
-                const dropdown = sel.querySelector('.network-dropdown');
-
-                btn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    const wasOpen = dropdown.classList.contains('open');
-                    closeAllDropdowns();
-
-                    if (!wasOpen) {
-                        dropdown.innerHTML = buildDropdownHTML(sectionId);
-                        reattachDropdownListeners(sectionId, dropdown);
-                        state.sections[sectionId].pendingNetworks = [...state.sections[sectionId].networks];
-                        updateDropdownUI(sectionId);
-                        dropdown.classList.add('open');
-                        btn.classList.add('open');
-                        positionDropdown(btn, dropdown);
-                    }
-                });
-
-                dropdown.addEventListener('click', e => e.stopPropagation());
-            });
-
-            document.addEventListener('click', closeAllDropdowns);
-
-            window.addEventListener('scroll', () => {
-                document.querySelectorAll('.network-dropdown.open').forEach(dropdown => {
-                    const btn = dropdown.closest('.network-selector').querySelector('.network-btn');
-                    positionDropdown(btn, dropdown);
-                });
-            }, true);
-        }
-
-        function reattachDropdownListeners(sectionId, dropdown) {
+            // Attach listeners
             dropdown.querySelectorAll('.network-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const netId = item.dataset.net;
-                    const pending = state.sections[sectionId].pendingNetworks;
-                    const idx = pending.indexOf(netId);
+                    const idx = state.pendingNetworks.indexOf(netId);
                     if (idx > -1) {
-                        pending.splice(idx, 1);
+                        state.pendingNetworks.splice(idx, 1);
                     } else {
-                        pending.push(netId);
+                        state.pendingNetworks.push(netId);
                     }
-                    updateDropdownUI(sectionId);
+                    dropdown.innerHTML = buildDropdown();
+                    attachDropdownListeners();
                 });
             });
 
-            dropdown.querySelector('.select-loaded-btn').addEventListener('click', () => {
-                state.sections[sectionId].pendingNetworks = [...state.loadedNetworks];
-                updateDropdownUI(sectionId);
+            attachDropdownListeners();
+        }
+
+        function attachDropdownListeners() {
+            const dropdown = document.getElementById('network-dropdown');
+
+            dropdown.querySelectorAll('.network-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const netId = item.dataset.net;
+                    const idx = state.pendingNetworks.indexOf(netId);
+                    if (idx > -1) {
+                        state.pendingNetworks.splice(idx, 1);
+                    } else {
+                        state.pendingNetworks.push(netId);
+                    }
+                    dropdown.innerHTML = buildDropdown();
+                    attachDropdownListeners();
+                });
             });
 
-            dropdown.querySelector('.cancel-btn').addEventListener('click', () => {
-                closeAllDropdowns();
+            document.getElementById('select-all-loaded')?.addEventListener('click', () => {
+                state.pendingNetworks = [...state.loadedNetworks];
+                dropdown.innerHTML = buildDropdown();
+                attachDropdownListeners();
             });
 
-            dropdown.querySelector('.apply-btn').addEventListener('click', async () => {
-                const sec = state.sections[sectionId];
-                const networksToLoad = sec.pendingNetworks.filter(n => !state.loadedNetworks.has(n));
+            document.getElementById('dropdown-cancel')?.addEventListener('click', closeDropdown);
 
-                closeAllDropdowns();
+            document.getElementById('dropdown-apply')?.addEventListener('click', async () => {
+                const toLoad = state.pendingNetworks.filter(n => !state.loadedNetworks.has(n));
+                closeDropdown();
 
-                if (networksToLoad.length > 0) {
-                    await loadNetworksOnDemand(sectionId, networksToLoad);
+                if (toLoad.length > 0) {
+                    state.isLoading = true;
+                    setOverlay(true, 'Loading new networks...');
+                    updateStatus('Loading...', true);
+
+                    const discovered = await loadNetworks(toLoad, state.isFullLoad ? CONFIG.FULL_PAGES : CONFIG.QUICK_PAGES);
+                    discovered.forEach((p, id) => state.pools.set(id, p));
+
+                    state.isLoading = false;
+                    setOverlay(false);
                 }
 
-                sec.networks = sec.pendingNetworks.filter(n => state.loadedNetworks.has(n));
-                renderSection(sectionId);
-                updateHeaderStatus('', 'success');
-                log(`[${sectionId}] Applied network filter: ${sec.networks.join(', ')}`, 'info');
+                state.selectedNetworks = state.pendingNetworks.filter(n => state.loadedNetworks.has(n));
+                renderTable();
+                updateStatus();
+                updateNetworkBadge();
             });
         }
 
-        // ============================================
-        // ON-DEMAND NETWORK LOADING
-        // ============================================
-        async function loadNetworksOnDemand(sectionId, networks) {
-            if (networks.length === 0) return;
-
-            setSectionLoading(sectionId, true, `Loading ${networks.length} network(s)...`);
-            log(`[${sectionId}] Loading networks on-demand: ${networks.join(', ')}`, 'info');
-
-            try {
-                updateHeaderStatus(`Loading ${networks.join(', ')}...`, 'info', true);
-
-                const discovered = await discoverPools(networks, pct => {
-                    setSectionLoading(sectionId, true, `Loading networks: ${Math.round(pct)}%`);
-                });
-
-                discovered.forEach((pool, id) => state.pools.set(id, pool));
-                updateHeaderStatus('', 'success');
-                log(`[${sectionId}] Loaded ${discovered.size} pools from ${networks.length} networks`, 'success');
-
-            } catch (err) {
-                log(`[${sectionId}] Error loading networks: ${err.message}`, 'error');
-                updateHeaderStatus('Error loading networks', 'error');
-            } finally {
-                setSectionLoading(sectionId, false);
-            }
+        function closeDropdown() {
+            document.getElementById('network-dropdown').classList.remove('open');
+            document.getElementById('network-btn').classList.remove('open');
         }
 
         // ============================================
-        // TIMEFRAME HANDLERS
+        // EVENT HANDLERS
         // ============================================
-        function initTimeframeToggles() {
-            document.querySelectorAll('.timeframe-toggle').forEach(toggle => {
-                const sectionId = toggle.dataset.section;
-
-                toggle.querySelectorAll('.tf-btn').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const tf = btn.dataset.tf;
-                        const sec = state.sections[sectionId];
-
-                        if (tf === sec.timeframe) return;
-
-                        toggle.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-
-                        sec.timeframe = tf;
-
-                        if (tf !== '24h') {
-                            const poolCount = getPoolsForSection(sectionId).length;
-                            setSectionLoading(sectionId, true, `Fetching ${CONFIG.TIMEFRAMES[tf].days}d volume for ${poolCount} pools...`);
-                            await fetchOHLCVForSection(sectionId, tf);
-                            setSectionLoading(sectionId, false);
-                        }
-
-                        renderSection(sectionId);
-                        log(`[${sectionId}] Changed timeframe to ${tf}`, 'info');
-                    });
-                });
-            });
-        }
-
-        // ============================================
-        // SORTING
-        // ============================================
-        function initSorting() {
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.addEventListener('click', () => {
-                    const sectionId = th.dataset.section;
-                    const field = th.dataset.sort;
-                    const sec = state.sections[sectionId];
-
-                    if (sec.sortField === field) {
-                        sec.sortDir = sec.sortDir === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        sec.sortField = field;
-                        sec.sortDir = 'desc';
-                    }
-
-                    document.querySelectorAll(`th[data-section="${sectionId}"]`).forEach(h => {
-                        h.classList.remove('sort-asc', 'sort-desc');
-                    });
-                    th.classList.add(`sort-${sec.sortDir}`);
-
-                    renderSection(sectionId);
-                });
-            });
-        }
-
-        // ============================================
-        // MAIN OPERATIONS
-        // ============================================
-        async function loadInitialData() {
-            if (state.isLoading) return;
-            state.isLoading = true;
-
-            const refreshBtn = document.getElementById('refresh-btn');
-            refreshBtn.disabled = true;
-
-            state.pools.clear();
-            state.loadedNetworks.clear();
-            state.apiCalls = 0;
-            state.debugLogs = [];
-
-            CONFIG.SECTIONS.forEach(s => {
-                const sec = state.sections[s.id];
-                sec.networks = [...CONFIG.INITIAL_NETWORKS];
-                sec.pendingNetworks = [...CONFIG.INITIAL_NETWORKS];
-                sec.timeframe = '24h';
-                sec.ohlcvCache = {};
-                setSectionLoading(s.id, true, 'Loading pools via GeckoTerminal...');
-
-                const toggle = document.querySelector(`.timeframe-toggle[data-section="${s.id}"]`);
-                if (toggle) {
-                    toggle.querySelectorAll('.tf-btn').forEach(b => {
-                        b.classList.toggle('active', b.dataset.tf === '24h');
-                    });
-                }
-            });
-
-            try {
-                log('Loading from Ethereum, Arbitrum, Base via GeckoTerminal...', 'gecko');
-                updateHeaderStatus('Loading pools...', 'info', true);
-
-                const discovered = await discoverPools(CONFIG.INITIAL_NETWORKS, updateProgress);
-                discovered.forEach((pool, id) => state.pools.set(id, pool));
-
-                renderAllSections();
-                updateHeaderStatus('', 'success');
-                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
-
-                log(`Initial load complete. ${state.pools.size} pools, ${state.apiCalls} API calls`, 'success');
-
-            } catch (err) {
-                log(`Load error: ${err.message}`, 'error');
-                updateHeaderStatus('Error loading data', 'error');
-            } finally {
-                state.isLoading = false;
-                refreshBtn.disabled = false;
-                updateProgress(0);
-                CONFIG.SECTIONS.forEach(s => setSectionLoading(s.id, false));
-            }
-        }
-
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        function init() {
-            buildSections();
-            initNetworkSelectors();
-            initTimeframeToggles();
-            initSorting();
-
+        function initEventHandlers() {
+            // Refresh
             document.getElementById('refresh-btn').addEventListener('click', loadInitialData);
 
-            document.getElementById('debug-toggle').addEventListener('click', () => {
-                document.getElementById('debug-section').classList.toggle('hidden');
+            // Network selector
+            document.getElementById('network-btn').addEventListener('click', e => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('network-dropdown');
+                if (dropdown.classList.contains('open')) {
+                    closeDropdown();
+                } else {
+                    openDropdown();
+                }
             });
 
-            document.getElementById('clear-debug').addEventListener('click', () => {
-                state.debugLogs = [];
-                renderDebugLog();
+            document.addEventListener('click', closeDropdown);
+            document.getElementById('network-dropdown').addEventListener('click', e => e.stopPropagation());
+
+            // Timeframe
+            document.querySelectorAll('.tf-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const tf = btn.dataset.tf;
+                    if (tf === state.timeframe) return;
+
+                    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.timeframe = tf;
+
+                    if (tf !== '24h') {
+                        setOverlay(true, `Fetching ${CONFIG.TIMEFRAMES[tf].days}d volume...`);
+                        await fetchTimeframeData(tf);
+                        setOverlay(false);
+                    }
+
+                    renderTable();
+                });
             });
 
+            // Sorting
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const field = th.dataset.sort;
+                    if (state.sortField === field) {
+                        state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.sortField = field;
+                        state.sortDir = 'desc';
+                    }
+                    renderTable();
+                });
+            });
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        function init() {
+            initEventHandlers();
             loadInitialData();
         }
 
