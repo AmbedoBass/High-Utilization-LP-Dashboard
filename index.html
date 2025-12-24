@@ -870,7 +870,7 @@
         <div class="header-content">
             <div class="header-left">
                 <h1>High Utilization LP Dashboard</h1>
-                <p>Find heavily utilized LPs. Ranks pools by Utilization % (Volume ÷ Liquidity × 100). APR estimated from volume × fee. Powered by Dexscreener & GeckoTerminal.</p>
+                <p>Find heavily utilized LPs. Ranks pools by Utilization % (Volume ÷ Liquidity × 100). APR estimated from volume × fee. Powered by GeckoTerminal.</p>
             </div>
             <div class="header-right">
                 <div class="header-controls">
@@ -908,8 +908,7 @@
             <button id="debug-toggle" class="debug-toggle" style="margin-left: 1rem;">Toggle Debug</button>
         </p>
         <div class="data-sources">
-            <span class="source-dexscreener">● Dexscreener (Discovery/24h)</span> |
-            <span class="source-gecko">● GeckoTerminal (OHLCV/EVM)</span>
+            <span class="source-gecko">● GeckoTerminal (Unified Data Source)</span>
         </div>
     </footer>
 
@@ -924,14 +923,12 @@
             // API Endpoints
             APIS: {
                 GECKOTERMINAL: 'https://api.geckoterminal.com/api/v2',
-                DEXSCREENER: 'https://api.dexscreener.com/latest/dex',
             },
 
             // Rate limits
             RATE_LIMITS: {
                 GECKOTERMINAL: 2200,
-                DEXSCREENER: 300,
-                DEFAULT: 1000
+                DEFAULT: 2000
             },
 
             MAX_RETRIES: 3,
@@ -940,35 +937,15 @@
             MIN_LIQUIDITY: 50000,
             MIN_VOLUME_24H: 1000,
             POOLS_PER_PAGE: 20,
+            MAX_PAGES_PER_NETWORK: 5,
             
             INITIAL_NETWORKS: ['solana', 'sui', 'eth', 'arbitrum', 'base'],
 
-            // Map Dexscreener chain IDs to internal IDs
-            CHAIN_ID_MAP: {
-                'solana': 'solana',
-                'ethereum': 'eth',
-                'arbitrum': 'arbitrum',
-                'bsc': 'bsc',
-                'polygon': 'polygon_pos',
-                'avalanche': 'avax',
-                'optimism': 'optimism',
-                'sui': 'sui',
-                'base': 'base',
-                'fantom': 'fantom',
-                'zksync': 'zksync',
-                'linea': 'linea',
-                'gnosis': 'gnosis',
-                'celo': 'celo',
-                'blast': 'blast',
-                'manta': 'manta',
-                'scroll': 'scroll',
-                'mode': 'mode'
-            },
-
-            // All internal networks supported
+            // All internal networks supported (GeckoTerminal IDs)
             ALL_SUPPORTED_NETWORKS: [
-                'solana', 'sui', 'eth', 'arbitrum', 'base', 'optimism', 'polygon_pos', 
-                'bsc', 'avax', 'fantom', 'zksync', 'linea', 'gnosis', 'celo', 'blast', 'manta', 'scroll', 'mode'
+                'eth', 'arbitrum', 'optimism', 'base', 'polygon_pos', 'zksync', 
+                'linea', 'bsc', 'avax', 'fantom', 'gnosis', 'mode', 'mantle', 
+                'manta', 'scroll', 'blast', 'celo', 'solana', 'sui'
             ],
 
             NETWORK_GROUPS: {
@@ -992,7 +969,8 @@
                     { id: 'mode', name: 'Mode' },
                     { id: 'manta', name: 'Manta' },
                     { id: 'scroll', name: 'Scroll' },
-                    { id: 'blast', name: 'Blast' }
+                    { id: 'blast', name: 'Blast' },
+                    { id: 'mantle', name: 'Mantle' }
                 ],
                 'Other': [
                     { id: 'polygon_pos', name: 'Polygon' },
@@ -1004,7 +982,7 @@
                 eth: 'Ethereum', arbitrum: 'Arbitrum', optimism: 'Optimism', base: 'Base',
                 polygon_pos: 'Polygon', zksync: 'zkSync', linea: 'Linea', bsc: 'BSC',
                 avax: 'Avalanche', fantom: 'Fantom', gnosis: 'Gnosis', mode: 'Mode',
-                manta: 'Manta', scroll: 'Scroll', blast: 'Blast',
+                manta: 'Manta', scroll: 'Scroll', blast: 'Blast', mantle: 'Mantle',
                 celo: 'Celo', solana: 'Solana', sui: 'Sui'
             },
 
@@ -1028,7 +1006,6 @@
                 sui: 'https://suiscan.xyz/mainnet/object/'
             },
 
-            // Updated Search Queries per requirements
             SEARCHES: {
                 'btc-stable': ['WBTC USDC', 'WBTC USDT', 'cbBTC USDC', 'tBTC USDC', 'WBTC DAI', 'BTC USDC', 'BTC USDT'],
                 'eth-stable': ['WETH USDC', 'WETH USDT', 'ETH USDC', 'ETH USDT', 'WETH DAI', 'ETH DAI', 'stETH USDC', 'rETH USDC', 'cbETH USDC'],
@@ -1060,10 +1037,7 @@
                 STABLE: ['usdc', 'usdt', 'dai', 'usdbc', 'frax', 'lusd', 'usds', 'crvusd', 'tusd', 'busd', 'gusd', 'usdp', 'usdd', 'pyusd', 'eusd', 'gho', 'mkusd', 'dola', 'susd', 'usd+', 'usdb', 'usdm', 'usde', 'usd0', 'fdusd', 'eur', 'eurt', 'eurc', 'ageur', 'ceur', 'usdk', 'usdn', 'mimatic', 'mai', 'alusd', 'mim', 'susdv2', 'susde', 'ousdt', 'ousdc', 'odai', 'wusdc', 'wusdt', 'wdai', 'usdce', 'usdtce', 'daie']
             },
 
-            EXCLUDED: new Set(['btcbull', 'btcbear', 'ethbull', 'ethbear', 'btc2x', 'eth2x', 'btc3x', 'eth3x', 'btcup', 'btcdown', 'ethup', 'ethdown', 'ethfi', 'etherfi', 'btcpay', 'ethpay', 'btcdao', 'ethdao', 'btcix', 'ethix', 'methane', 'methanol', 'ethanol', 'ethernet', 'synthesis', 'synthetic', 'aesthetics', 'bethel', 'beth', 'elizabeth', 'macbeth']),
-
-            NATIVE_API_NETWORKS: new Set(['solana', 'sui']),
-            EVM_NETWORKS: new Set(['eth', 'arbitrum', 'optimism', 'base', 'polygon_pos', 'zksync', 'linea', 'bsc', 'avax', 'fantom', 'gnosis', 'mode', 'manta', 'scroll', 'blast', 'celo'])
+            EXCLUDED: new Set(['btcbull', 'btcbear', 'ethbull', 'ethbear', 'btc2x', 'eth2x', 'btc3x', 'eth3x', 'btcup', 'btcdown', 'ethup', 'ethdown', 'ethfi', 'etherfi', 'btcpay', 'ethpay', 'btcdao', 'ethdao', 'btcix', 'ethix', 'methane', 'methanol', 'ethanol', 'ethernet', 'synthesis', 'synthetic', 'aesthetics', 'bethel', 'beth', 'elizabeth', 'macbeth'])
         };
 
         const ASSET_MAP = {};
@@ -1082,8 +1056,7 @@
             debugLogs: [],
             apiCalls: 0,
             lastApiCalls: {},
-            sections: {},
-            dexscreenerQueries: []
+            sections: {}
         };
 
         CONFIG.SECTIONS.forEach(s => {
@@ -1176,17 +1149,13 @@
             }
         }
 
-        // Helper to get distinct color for protocol badges (Red-Orange-Yellow Spectrum)
         function getProtocolBadgeStyle(name) {
             let hash = 0;
             const str = name.toLowerCase();
             for (let i = 0; i < str.length; i++) {
                 hash = str.charCodeAt(i) + ((hash << 5) - hash);
             }
-            // HSL Range: 10 (Red-Orange) to 45 (Yellow-Orange)
-            // Avoiding pure Red (0) and pure Yellow (60)
             const hue = Math.abs(hash % 35) + 10; 
-            // High Saturation, Medium Lightness for readability but "hot" colors
             const color = `hsl(${hue}, 85%, 45%)`;
             return {
                 color: color,
@@ -1271,7 +1240,7 @@
         }
 
         // ============================================
-        // BASE DATA SOURCE CLASS
+        // DATA SOURCE CLASS (GECKOTERMINAL ONLY)
         // ============================================
         class DataSource {
             constructor(name, network) {
@@ -1329,102 +1298,6 @@
             async fetchHistoricalVolume(pool, days) { throw new Error('Not implemented'); }
         }
 
-        // ============================================
-        // DEXSCREENER DATA SOURCE
-        // ============================================
-        class DexscreenerSource extends DataSource {
-            constructor() {
-                super('Dexscreener', 'global');
-                this.baseUrl = CONFIG.APIS.DEXSCREENER;
-                this.rateLimitMs = CONFIG.RATE_LIMITS.DEXSCREENER;
-            }
-
-            async discoverPools(onProgress) {
-                const discovered = new Map();
-                const allQueries = Object.values(CONFIG.SEARCHES).flat();
-                const uniqueQueries = [...new Set(allQueries)];
-                
-                let step = 0;
-                const totalSteps = uniqueQueries.length;
-
-                log(`[Dexscreener] Starting global discovery for ${totalSteps} queries...`, 'dexscreener');
-
-                for (const query of uniqueQueries) {
-                    const res = await this.fetchWithRetry(
-                        `${this.baseUrl}/search?q=${encodeURIComponent(query)}`
-                    );
-
-                    if (res && res.pairs) {
-                        res.pairs.forEach(pair => {
-                            const internalChainId = CONFIG.CHAIN_ID_MAP[pair.chainId];
-                            if (!internalChainId) return;
-                            
-                            const liquidity = pair.liquidity?.usd || 0;
-                            const volume24h = pair.volume?.h24 || 0;
-
-                            if (liquidity >= CONFIG.MIN_LIQUIDITY && volume24h >= CONFIG.MIN_VOLUME_24H) {
-                                const norm = this.normalizePool(pair, internalChainId);
-                                if (norm) {
-                                    const existing = discovered.get(norm.id);
-                                    if (!existing || existing.liquidity < norm.liquidity) {
-                                        discovered.set(norm.id, norm);
-                                    }
-                                }
-                            }
-                        });
-                    }
-
-                    step++;
-                    if (onProgress) onProgress((step / totalSteps) * 100);
-                    await sleep(50); 
-                }
-
-                log(`[Dexscreener] Discovery complete. Found ${discovered.size} pools.`, 'dexscreener');
-                return discovered;
-            }
-
-            normalizePool(raw, internalChainId) {
-                let fee = CONFIG.DEFAULT_FEE; 
-                const labels = raw.info?.labels || [];
-                const feeLabel = labels.find(l => l.includes('%'));
-                if (feeLabel) {
-                    const match = feeLabel.match(/([\d\.]+)%/);
-                    if (match) fee = parseFloat(match[1]) / 100;
-                } else if (raw.dexId === 'uniswap' || raw.dexId === 'sushiswap') {
-                    fee = 0.003;
-                } else if (raw.dexId === 'pancakeswap') {
-                    fee = 0.0025;
-                }
-
-                let protocol = raw.dexId || 'DEX';
-                protocol = protocol.charAt(0).toUpperCase() + protocol.slice(1);
-
-                const explorerBase = CONFIG.EXPLORERS[internalChainId] || '#';
-                const explorerUrl = explorerBase + raw.pairAddress;
-
-                return {
-                    id: `${internalChainId}-${raw.pairAddress}`,
-                    chainId: internalChainId,
-                    address: raw.pairAddress,
-                    token0: { symbol: raw.baseToken.symbol, address: raw.baseToken.address },
-                    token1: { symbol: raw.quoteToken.symbol, address: raw.quoteToken.address },
-                    name: `${raw.baseToken.symbol} / ${raw.quoteToken.symbol}`,
-                    liquidity: raw.liquidity?.usd || 0,
-                    volume24h: raw.volume?.h24 || 0,
-                    volume: { h24: raw.volume?.h24 || 0, h6: raw.volume?.h6 || 0, h1: raw.volume?.h1 || 0 },
-                    fee: fee,
-                    protocol: protocol,
-                    url: raw.url,
-                    explorerUrl: explorerUrl,
-                    priceUsd: parseFloat(raw.priceUsd) || 0,
-                    source: 'dexscreener'
-                };
-            }
-        }
-
-        // ============================================
-        // GECKOTERMINAL DATA SOURCE
-        // ============================================
         class GeckoTerminalSource extends DataSource {
             constructor(network) {
                 super('GeckoTerminal', network);
@@ -1432,451 +1305,661 @@
                 this.rateLimitMs = CONFIG.RATE_LIMITS.GECKOTERMINAL;
             }
 
-            async fetchHistoricalVolume(pool, days) {
-                if (CONFIG.NATIVE_API_NETWORKS.has(pool.chainId)) {
+            async discoverPools(onProgress) {
+                const discovered = new Map();
+                
+                // Helper to add pool if it passes filters
+                const checkAndAddPool = (poolData) => {
+                    const norm = this.normalizePool(poolData);
+                    if (norm) {
+                        const existing = discovered.get(norm.id);
+                        // Prefer pool with higher liquidity if duplicate found
+                        if (!existing || existing.liquidity < norm.liquidity) {
+                            discovered.set(norm.id, norm);
+                        }
+                    }
+                };
+
+                log(`[GeckoTerminal] Starting discovery for ${this.network}...`, 'gecko');
+                
+                // 1. Fetch Top Pools via Pagination
+                for (let page = 1; page <= CONFIG.MAX_PAGES_PER_NETWORK; page++) {
+                    const url = `${this.baseUrl}/networks/${this.network}/pools?page=${page}`;
+                    const res = await this.fetchWithRetry(url);
+
+                    if (res && res.data && Array.isArray(res.data)) {
+                        if (res.data.length === 0) break; // No more pools
+
+                        res.data.forEach(pool => checkAndAddPool(pool));
+                        
+                        // Extract included data once per page to map tokens/dexes if needed, 
+                        // though normalizePool handles the full object context.
+                    } else {
+                        log(`[GeckoTerminal] Failed to fetch page ${page} for ${this.network}`, 'warn');
+                        break;
+                    }
+                    
+                    // Small progress bump per page
+                    if (onProgress) onProgress(5); 
+                }
+
+                // 2. Fetch Specific Search Queries
+                const allQueries = Object.values(CONFIG.SEARCHES).flat();
+                const uniqueQueries = [...new Set(allQueries)];
+                
+                log(`[GeckoTerminal] Searching ${uniqueQueries.length} queries for ${this.network}...`, 'gecko');
+
+                for (const query of uniqueQueries) {
+                    const url = `${this.baseUrl}/search/pools?query=${encodeURIComponent(query)}&network=${this.network}`;
+                    const res = await this.fetchWithRetry(url);
+
+                    if (res && res.data && Array.isArray(res.data)) {
+                        res.data.forEach(pool => checkAndAddPool(pool));
+                    }
+                    if (onProgress) onProgress(1);
+                }
+
+                log(`[GeckoTerminal] Discovery complete for ${this.network}. Found ${discovered.size} pools.`, 'gecko');
+                return discovered;
+            }
+
+            normalizePool(raw) {
+                // GeckoTerminal API: JSON API format
+                // attributes contains: address, name, reserve_in_usd, volume_usd { h24 }
+                // relationships contains: dex, base_token, quote_token
+                // included contains: full objects for dex and tokens
+
+                const attr = raw.attributes;
+                const rel = raw.relationships;
+                
+                if (!attr || !rel) return null;
+
+                const liquidity = parseFloat(attr.reserve_in_usd || 0);
+                const volume24h = parseFloat(attr.volume_usd?.h24 || 0);
+
+                if (liquidity < CONFIG.MIN_LIQUIDITY || volume24h < CONFIG.MIN_VOLUME_24H) {
                     return null;
                 }
 
-                const res = await this.fetchWithRetry(
-                    `${this.baseUrl}/networks/${pool.chainId}/pools/${pool.address}/ohlcv/day?aggregate=1&limit=${Math.min(days, 365)}&currency=usd`
-                );
+                // Build included map
+                const includedMap = {};
+                if (raw.included && Array.isArray(raw.included)) {
+                    raw.included.forEach(item => {
+                        includedMap[item.id] = item.attributes;
+                    });
+                }
 
-                if (!res) return null;
-                const list = res.data?.attributes?.ohlcv_list || [];
-                if (!list.length) return null;
+                // Get Token Details
+                const getToken = (relField) => {
+                    const tokenRel = rel[relField]?.data;
+                    if (!tokenRel) return { symbol: '???' };
+                    const tokenAttr = includedMap[tokenRel.id];
+                    return {
+                        symbol: tokenAttr?.symbol || '???',
+                        address: tokenAttr?.address || tokenRel.id
+                    };
+                };
 
-                const totalVol = list.reduce((acc, item) => acc + (item[5] || 0), 0);
-                return totalVol;
+                const token0 = getToken('base_token');
+                const token1 = getToken('quote_token');
+
+                // Get Dex Details
+                let protocol = 'DEX';
+                const dexRel = rel.dex?.data;
+                if (dexRel && includedMap[dexRel.id]) {
+                    protocol = includedMap[dexRel.id].name || 'DEX';
+                }
+
+                // Fee Tier parsing
+                let fee = 0.003; // Default 0.3%
+                if (attr.fee_tier) {
+                    const feeStr = String(attr.fee_tier);
+                    // Try to handle "0.3", "3000", "0.05", "500"
+                    const parsedFee = parseFloat(feeStr);
+                    if (!isNaN(parsedFee)) {
+                        if (parsedFee > 1) {
+                            // Likely basis points (e.g. 3000 -> 0.3)
+                            fee = parsedFee / 10000;
+                        } else {
+                            // Likely decimal (e.g. 0.3 -> 0.3)
+                            fee = parsedFee;
+                        }
+                    }
+                }
+
+                const explorerBase = CONFIG.EXPLORERS[this.network] || '#';
+                const explorerUrl = explorerBase + attr.address;
+                const poolUrl = `https://www.geckoterminal.com/${this.network}/pools/${attr.address}`;
+
+                return {
+                    id: `${this.network}-${attr.address}`,
+                    chainId: this.network,
+                    address: attr.address,
+                    token0: token0,
+                    token1: token1,
+                    name: attr.name,
+                    liquidity: liquidity,
+                    volume24h: volume24h,
+                    fee: fee,
+                    protocol: protocol,
+                    explorerUrl: explorerUrl,
+                    poolUrl: poolUrl,
+                    dataSource: 'geckoterminal'
+                };
+            }
+
+            async fetchHistoricalVolume(pool, days) {
+                // pool.id is "network-address"
+                const parts = pool.id.split('-');
+                if (parts.length < 2) return 0;
+                
+                const network = parts[0];
+                const address = parts.slice(1).join('-'); // Rejoin in case address had hyphens (unlikely for GT but safe)
+
+                // Aggregate=1 means daily candles. Limit=days
+                const url = `${this.baseUrl}/networks/${network}/pools/${address}/ohlcv/day?aggregate=1&limit=${days}&currency=usd`;
+                
+                const res = await this.fetchWithRetry(url);
+                if (res && res.data && Array.isArray(res.data)) {
+                    let totalVolume = 0;
+                    res.data.forEach(candle => {
+                        totalVolume += parseFloat(candle.attributes.volume || 0);
+                    });
+                    return totalVolume;
+                }
+                return 0;
             }
         }
 
         // ============================================
-        // DASHBOARD CONTROLLER
+        // APP LOGIC
         // ============================================
         
-        async function loadDashboardData() {
+        function createDataSource(network) {
+            return new GeckoTerminalSource(network);
+        }
+
+        function getHistoricalVolumeSource(network) {
+            return new GeckoTerminalSource(network);
+        }
+
+        async function discoverPoolsForNetwork(network, progressCallback) {
+            const source = createDataSource(network);
+            const discovered = await source.discoverPools(progressCallback);
+            
+            let addedCount = 0;
+            discovered.forEach(pool => {
+                state.pools.set(pool.id, pool);
+                addedCount++;
+            });
+
+            return addedCount;
+        }
+
+        async function fetchPoolHistory(sectionId) {
+            const section = state.sections[sectionId];
+            const days = CONFIG.TIMEFRAMES[section.timeframe].days;
+
+            // Filter pools for this section
+            const sectionPools = Array.from(state.pools.values()).filter(p => {
+                if (!section.networks.includes(p.chainId)) return false;
+                // Match logic based on section ID
+                const symbols = [p.token0.symbol.toLowerCase(), p.token1.symbol.toLowerCase()];
+                const name = p.name.toLowerCase();
+                
+                if (sectionId === 'btc-stable') {
+                    return symbols.some(s => CONFIG.ASSETS.BTC.includes(s)) && symbols.some(s => CONFIG.ASSETS.STABLE.includes(s));
+                }
+                if (sectionId === 'eth-stable') {
+                    return symbols.some(s => CONFIG.ASSETS.ETH.includes(s)) && symbols.some(s => CONFIG.ASSETS.STABLE.includes(s));
+                }
+                if (sectionId === 'btc-eth') {
+                    return symbols.some(s => CONFIG.ASSETS.BTC.includes(s)) && symbols.some(s => CONFIG.ASSETS.ETH.includes(s));
+                }
+                if (sectionId === 'wrapped') {
+                    return symbols.some(s => CONFIG.ASSETS.ETH.includes(s)) && symbols.some(s => CONFIG.ASSETS.ETH.includes(s)) && !symbols.some(s => CONFIG.ASSETS.STABLE.includes(s));
+                }
+                if (sectionId === 'stable-stable') {
+                    return symbols.some(s => CONFIG.ASSETS.STABLE.includes(s)) && symbols.some(s => CONFIG.ASSETS.STABLE.includes(s));
+                }
+                return false;
+            });
+
+            // Dedupe pools that need fetching (avoid fetching same pool for different sections if timeframe is same)
+            // But here we fetch per section context. 
+            // Optimization: Check if we already have history for this pool ID for these specific days?
+            // For simplicity, we re-fetch or update. A simple cache key: `${poolId}-${days}`
+            
+            const fetchTasks = sectionPools.map(async (pool) => {
+                const cacheKey = `${pool.id}-${days}`;
+                if (state.poolHistory.has(cacheKey)) {
+                    return state.poolHistory.get(cacheKey);
+                }
+
+                const source = getHistoricalVolumeSource(pool.chainId);
+                const vol = await source.fetchHistoricalVolume(pool, days);
+                state.poolHistory.set(cacheKey, vol);
+                return vol;
+            });
+
+            const volumes = await Promise.all(fetchTasks);
+            
+            // Attach volumes to a temporary map for rendering
+            const volumeMap = new Map();
+            sectionPools.forEach((p, i) => {
+                volumeMap.set(p.id, volumes[i]);
+            });
+
+            return { pools: sectionPools, volumeMap };
+        }
+
+        function calculateAPR(pool, volume, timeframe) {
+            // APR = (Volume * Fee * 365) / Liquidity
+            // Note: Volume is already aggregated for the timeframe days
+            const days = CONFIG.TIMEFRAMES[timeframe].days;
+            const annualizedVolume = (volume / days) * 365;
+            const feeRevenue = annualizedVolume * pool.fee;
+            if (pool.liquidity === 0) return 0;
+            return feeRevenue / pool.liquidity;
+        }
+
+        function calculateUtilization(pool, timeframe, volume) {
+            const days = CONFIG.TIMEFRAMES[timeframe].days;
+            const avgDailyVolume = volume / days;
+            if (pool.liquidity === 0) return 0;
+            return avgDailyVolume / pool.liquidity;
+        }
+
+        async function refreshData() {
             if (state.isLoading) return;
             state.isLoading = true;
-            
             state.pools.clear();
             state.poolHistory.clear();
             state.loadedNetworks.clear();
-
-            updateHeaderStatus('Discovering pools via Dexscreener...', 'info', true);
-            updateProgress(5);
+            
+            document.getElementById('dashboard-grid').innerHTML = '';
+            document.getElementById('stablecoin-section-wrapper').innerHTML = '';
+            updateHeaderStatus('Discovering pools...', 'info', true);
+            updateProgress(1);
 
             try {
-                const ds = new DexscreenerSource();
-                const discovered = await ds.discoverPools((pct) => {
-                    updateProgress(5 + (pct * 0.5));
-                });
-
-                discovered.forEach(pool => state.pools.set(pool.id, pool));
-                updateProgress(60);
-
-                const chains = new Set();
-                state.pools.forEach(p => chains.add(p.chainId));
-                chains.forEach(c => state.loadedNetworks.add(c));
-
-                log(`Loaded ${state.pools.size} pools from ${state.loadedNetworks.size} networks`, 'success');
-                updateHeaderStatus('Fetching historical data for EVM networks...', 'info', true);
-
-                renderDashboard();
-                updateProgress(100);
+                // 1. Discovery Phase
+                const networksToLoad = CONFIG.ALL_SUPPORTED_NETWORKS; // Or a subset if user prefers
+                let networkIndex = 0;
                 
-                await prefetchHistory();
+                for (const network of networksToLoad) {
+                    updateHeaderStatus(`Scanning ${CONFIG.NETWORK_NAMES[network] || network}...`, 'info', true);
+                    const count = await discoverPoolsForNetwork(network, (pctInc) => {
+                         // Aggregate progress
+                         const totalProgress = ((networkIndex / networksToLoad.length) * 70) + (pctInc / networksToLoad.length);
+                         updateProgress(Math.min(totalProgress, 70));
+                    });
+                    if (count > 0) {
+                        state.loadedNetworks.add(network);
+                    }
+                    networkIndex++;
+                }
 
-                updateHeaderStatus('Data Loaded', 'success', false);
+                updateHeaderStatus(`Found ${state.pools.size} pools. Loading history...`, 'info', true);
+                updateProgress(75);
+
+                // 2. UI Initialization
+                initDashboardUI();
+
+                // 3. Fetch Data for Initial Render (all sections)
+                const updatePromises = CONFIG.SECTIONS.map(section => updateSectionData(section.id));
+                await Promise.all(updatePromises);
+
+                updateHeaderStatus('Complete', 'success');
+                updateProgress(100);
+                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+
             } catch (err) {
-                console.error(err);
                 log(`Critical Error: ${err.message}`, 'error');
-                updateHeaderStatus('Error loading data', 'error', false);
+                updateHeaderStatus('Error loading data', 'error');
             } finally {
                 state.isLoading = false;
-                document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
             }
         }
 
-        async function prefetchHistory() {
-            const gt = new GeckoTerminalSource();
-            let count = 0;
-            const limit = 50;
-
-            for (const sectionId of Object.keys(state.sections)) {
-                const section = state.sections[sectionId];
-                const sectionPools = getFilteredPools(sectionId)
-                    .sort((a, b) => (b.volume24h / b.liquidity) - (a.volume24h / a.liquidity))
-                    .slice(0, 5); 
-
-                for (const pool of sectionPools) {
-                    if (count >= limit) break;
-                    if (CONFIG.EVM_NETWORKS.has(pool.chainId) && !state.poolHistory.has(pool.id)) {
-                        const vol = await gt.fetchHistoricalVolume(pool, 7);
-                        if (vol) {
-                            if (!state.poolHistory.has(pool.id)) state.poolHistory.set(pool.id, {});
-                            state.poolHistory.get(pool.id)['7d'] = vol;
-                        }
-                        count++;
-                        await sleep(200);
-                    }
-                }
-            }
-            log(`Prefetched history for ${count} pools`, 'info');
-        }
-
-        function getFilteredPools(sectionId) {
-            const section = state.sections[sectionId];
-            const searchKeys = CONFIG.SEARCHES[sectionId] || [];
-            const validPools = [];
-            
-            state.pools.forEach(pool => {
-                if (!section.networks.includes(pool.chainId)) return;
-
-                const name = pool.name.toLowerCase().replace(/[\s\/\-]/g, '');
-                
-                const matchesSection = searchKeys.some(query => {
-                    const parts = query.toLowerCase().split(' ');
-                    return parts.every(part => name.includes(part));
-                });
-
-                if (matchesSection) {
-                    validPools.push(pool);
-                }
-            });
-
-            return validPools;
-        }
-
-        function calculatePoolMetrics(pool, timeframe) {
-            let volume = pool.volume24h;
-            let timeframeNote = '';
-
-            if (timeframe !== '24h') {
-                if (CONFIG.NATIVE_API_NETWORKS.has(pool.chainId)) {
-                    volume = pool.volume24h;
-                    timeframeNote = '(24h rate)';
-                } else {
-                    const history = state.poolHistory.get(pool.id);
-                    if (history && history[timeframe]) {
-                        volume = history[timeframe];
-                    } else {
-                        volume = pool.volume24h; 
-                    }
-                }
-            }
-
-            const util = pool.liquidity > 0 ? volume / pool.liquidity : 0;
-            const days = CONFIG.TIMEFRAMES[timeframe].days;
-            const annualVol = volume * (365 / days);
-            const apr = pool.liquidity > 0 ? (annualVol * pool.fee) / pool.liquidity : 0;
-
-            return { volume, util, apr, timeframeNote };
-        }
-
-        function renderDashboard() {
+        function initDashboardUI() {
             const grid = document.getElementById('dashboard-grid');
             const stableWrapper = document.getElementById('stablecoin-section-wrapper');
+            
             grid.innerHTML = '';
             stableWrapper.innerHTML = '';
 
-            CONFIG.SECTIONS.forEach(sectionConfig => {
-                const section = state.sections[sectionConfig.id];
+            CONFIG.SECTIONS.forEach(section => {
+                const container = section.grid ? grid : stableWrapper;
                 const sectionEl = document.createElement('div');
-                sectionEl.className = `pair-section ${sectionConfig.grid ? '' : 'full-width'}`;
-                sectionEl.id = `section-${sectionConfig.id}`;
-
-                const headerHtml = `
+                sectionEl.className = 'pair-section' + (section.grid ? '' : ' full-width');
+                sectionEl.id = `section-${section.id}`;
+                
+                sectionEl.innerHTML = `
                     <div class="section-header">
-                        <div class="section-title">
-                            ${sectionConfig.title}
-                            <span class="pool-count" id="count-${sectionConfig.id}">0</span>
-                        </div>
+                        <div class="section-title">${section.title} <span class="pool-count" id="count-${section.id}">0</span></div>
                         <div class="section-controls">
                             <div class="network-selector">
-                                <button class="network-btn" onclick="toggleDropdown('${sectionConfig.id}')">
-                                    <span class="network-badge" id="net-count-${sectionConfig.id}">${section.networks.length}</span> Networks
+                                <button class="network-btn" id="net-btn-${section.id}">
+                                    Networks <span class="network-badge" id="net-badge-${section.id}">0</span>
                                     <span class="network-arrow">▼</span>
                                 </button>
-                                <div class="network-dropdown" id="dropdown-${sectionConfig.id}">
+                                <div class="network-dropdown" id="net-dd-${section.id}">
                                     <div class="dropdown-header">
                                         <span>Select Networks</span>
-                                        <button onclick="resetNetworks('${sectionConfig.id}')">Reset</button>
+                                        <button class="reset-networks" data-section="${section.id}">Reset</button>
                                     </div>
-                                    <div class="dropdown-content" id="dropdown-content-${sectionConfig.id}">
-                                    </div>
+                                    <div class="dropdown-content" id="net-list-${section.id}"></div>
                                     <div class="dropdown-footer">
-                                        <span class="dropdown-footer-info">
-                                            Showing <span class="to-load" id="showing-count-${sectionConfig.id}">${section.networks.length}</span> networks
-                                        </span>
+                                        <div class="dropdown-footer-info">Active: <span class="to-load">${state.sections[section.id].networks.length}</span></div>
+                                        <div class="dropdown-footer-buttons">
+                                            <button class="btn btn-sm apply-networks" data-section="${section.id}">Apply</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="timeframe-toggle">
                                 ${Object.keys(CONFIG.TIMEFRAMES).map(tf => `
-                                    <button class="tf-btn ${section.timeframe === tf ? 'active' : ''}" 
-                                        onclick="setTimeframe('${sectionConfig.id}', '${tf}')"
-                                        id="tf-btn-${sectionConfig.id}-${tf}">
-                                        ${tf}
-                                    </button>
+                                    <button class="tf-btn ${tf === state.sections[section.id].timeframe ? 'active' : ''}" 
+                                            data-section="${section.id}" data-tf="${tf}">${tf}</button>
                                 `).join('')}
                             </div>
                         </div>
                     </div>
-                `;
-
-                const tableHtml = `
                     <div class="section-content">
                         <div class="table-container">
                             <table class="pool-table">
                                 <thead>
                                     <tr>
-                                        <th class="col-chain">Chain</th>
+                                        <th class="col-chain" data-sort="chainId">Chain</th>
                                         <th class="col-protocol">Protocol</th>
-                                        <th class="col-pool">Pair</th>
-                                        <th class="col-fee">Fee</th>
-                                        <th class="col-liquidity" onclick="sortSection('${sectionConfig.id}', 'liquidity')">Liq</th>
-                                        <th class="col-volume" onclick="sortSection('${sectionConfig.id}', 'volume')">Vol (${CONFIG.TIMEFRAMES[section.timeframe].label})</th>
-                                        <th class="col-util" onclick="sortSection('${sectionConfig.id}', 'utilization')">Util</th>
-                                        <th class="col-apr" onclick="sortSection('${sectionConfig.id}', 'apr')">APR</th>
+                                        <th class="col-pool" data-sort="name">Pool</th>
+                                        <th class="col-fee" data-sort="fee">Fee</th>
+                                        <th class="col-liquidity" data-sort="liquidity">Liq</th>
+                                        <th class="col-volume" data-sort="volume">Vol</th>
+                                        <th class="col-util" data-sort="utilization">Util</th>
+                                        <th class="col-apr" data-sort="apr">APR</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbody-${sectionConfig.id}">
-                                </tbody>
+                                <tbody id="tbody-${section.id}"></tbody>
                             </table>
                         </div>
                     </div>
+                    <div class="section-overlay" id="overlay-${section.id}">
+                        <div class="spinner"></div>
+                        <div class="section-overlay-text">Loading Data...</div>
+                    </div>
                 `;
-
-                sectionEl.innerHTML = headerHtml + tableHtml;
-
-                if (sectionConfig.grid) {
-                    grid.appendChild(sectionEl);
-                } else {
-                    stableWrapper.appendChild(sectionEl);
-                }
-
-                renderNetworkDropdown(sectionConfig.id);
-                renderSectionTable(sectionConfig.id);
+                container.appendChild(sectionEl);
+                
+                initSectionControls(section.id);
             });
+        }
+
+        function initSectionControls(sectionId) {
+            // Timeframe buttons
+            const tfBtns = document.querySelectorAll(`.tf-btn[data-section="${sectionId}"]`);
+            tfBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tf = btn.dataset.tf;
+                    state.sections[sectionId].timeframe = tf;
+                    
+                    // Update UI classes
+                    tfBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    updateSectionData(sectionId);
+                });
+            });
+
+            // Network Selector
+            const netBtn = document.getElementById(`net-btn-${sectionId}`);
+            const netDd = document.getElementById(`net-dd-${sectionId}`);
+            const netList = document.getElementById(`net-list-${sectionId}`);
+            const applyBtn = document.querySelector(`.apply-networks[data-section="${sectionId}"]`);
+            const resetBtn = document.querySelector(`.reset-networks[data-section="${sectionId}"]`);
+
+            // Populate list
+            const renderNetworkList = () => {
+                const selected = new Set(state.sections[sectionId].networks);
+                netList.innerHTML = '';
+                
+                Object.entries(CONFIG.NETWORK_GROUPS).forEach(([groupName, nets]) => {
+                    const groupLabel = document.createElement('div');
+                    groupLabel.className = 'network-group-label';
+                    groupLabel.textContent = groupName;
+                    netList.appendChild(groupLabel);
+
+                    nets.forEach(net => {
+                        const item = document.createElement('div');
+                        const isSelected = selected.has(net.id);
+                        item.className = `network-item ${isSelected ? 'selected' : ''}`;
+                        item.innerHTML = `
+                            <div class="network-checkbox">${isSelected ? '✓' : ''}</div>
+                            <div class="network-name">${net.name}</div>
+                            ${net.fast ? '<span class="fast-tag">Fast</span>' : ''}
+                        `;
+                        item.onclick = () => {
+                            if (selected.has(net.id)) selected.delete(net.id);
+                            else selected.add(net.id);
+                            state.sections[sectionId].networks = Array.from(selected);
+                            renderNetworkList();
+                        };
+                        netList.appendChild(item);
+                    });
+                });
+                
+                // Update badge count
+                document.getElementById(`net-badge-${sectionId}`).textContent = selected.size;
+            };
+            renderNetworkList();
+
+            // Toggle dropdown
+            netBtn.onclick = (e) => {
+                e.stopPropagation();
+                const isOpen = netDd.classList.contains('open');
+                // Close others
+                document.querySelectorAll('.network-dropdown.open').forEach(el => el.classList.remove('open'));
+                document.querySelectorAll('.network-btn.open').forEach(el => el.classList.remove('open'));
+                
+                if (!isOpen) {
+                    netDd.classList.add('open');
+                    netBtn.classList.add('open');
+                }
+            };
+
+            // Apply button
+            applyBtn.onclick = () => {
+                netDd.classList.remove('open');
+                netBtn.classList.remove('open');
+                updateSectionData(sectionId);
+            };
+
+            // Reset button
+            resetBtn.onclick = () => {
+                state.sections[sectionId].networks = [...CONFIG.INITIAL_NETWORKS];
+                renderNetworkList();
+                updateSectionData(sectionId);
+            };
+
+            // Close dropdowns on click outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.network-selector')) {
+                    netDd.classList.remove('open');
+                    netBtn.classList.remove('open');
+                }
+            });
+
+            // Sorting
+            const table = document.querySelector(`#section-${sectionId} .pool-table`);
+            table.querySelectorAll('th[data-sort]').forEach(th => {
+                th.onclick = () => {
+                    const field = th.dataset.sort;
+                    const current = state.sections[sectionId].sortField;
+                    const dir = (current === field && state.sections[sectionId].sortDir === 'desc') ? 'asc' : 'desc';
+                    
+                    state.sections[sectionId].sortField = field;
+                    state.sections[sectionId].sortDir = dir;
+                    
+                    renderSectionTable(sectionId);
+                };
+            });
+        }
+
+        async function updateSectionData(sectionId) {
+            const overlay = document.getElementById(`overlay-${sectionId}`);
+            overlay.classList.add('active');
+
+            try {
+                const { pools, volumeMap } = await fetchPoolHistory(sectionId);
+                
+                // Attach calculated metrics
+                const enrichedPools = pools.map(pool => {
+                    const volume = volumeMap.get(pool.id) || 0;
+                    const section = state.sections[sectionId];
+                    const apr = calculateAPR(pool, volume, section.timeframe);
+                    const util = calculateUtilization(pool, section.timeframe, volume);
+                    
+                    return {
+                        ...pool,
+                        displayVolume: volume,
+                        displayAPR: apr,
+                        displayUtil: util
+                    };
+                });
+
+                state.sections[sectionId].renderData = enrichedPools;
+                renderSectionTable(sectionId);
+
+            } catch (err) {
+                log(`Error updating section ${sectionId}: ${err.message}`, 'error');
+            } finally {
+                overlay.classList.remove('active');
+            }
         }
 
         function renderSectionTable(sectionId) {
-            const tbody = document.getElementById(`tbody-${sectionId}`);
-            const countEl = document.getElementById(`count-${sectionId}`);
             const section = state.sections[sectionId];
+            const tbody = document.getElementById(`tbody-${sectionId}`);
+            const countSpan = document.getElementById(`count-${sectionId}`);
             
-            let pools = getFilteredPools(sectionId);
+            if (!section.renderData) return;
 
-            pools.sort((a, b) => {
-                const ma = calculatePoolMetrics(a, section.timeframe);
-                const mb = calculatePoolMetrics(b, section.timeframe);
-                
-                const valA = section.sortField === 'liquidity' ? a.liquidity :
-                              section.sortField === 'volume' ? ma.volume :
-                              section.sortField === 'utilization' ? ma.util : ma.apr;
-                
-                const valB = section.sortField === 'liquidity' ? b.liquidity :
-                              section.sortField === 'volume' ? mb.volume :
-                              section.sortField === 'utilization' ? mb.util : mb.apr;
+            const { sortField, sortDir, renderData } = section;
 
-                return section.sortDir === 'desc' ? valB - valA : valA - valB;
+            // Sort
+            renderData.sort((a, b) => {
+                let valA, valB;
+                if (sortField === 'chainId') {
+                    valA = a.chainId; valB = b.chainId;
+                } else if (sortField === 'name') {
+                    valA = a.name; valB = b.name;
+                } else if (sortField === 'fee') {
+                    valA = a.fee; valB = b.fee;
+                } else if (sortField === 'liquidity') {
+                    valA = a.liquidity; valB = b.liquidity;
+                } else if (sortField === 'volume') {
+                    valA = a.displayVolume; valB = b.displayVolume;
+                } else if (sortField === 'utilization') {
+                    valA = a.displayUtil; valB = b.displayUtil;
+                } else if (sortField === 'apr') {
+                    valA = a.displayAPR; valB = b.displayAPR;
+                }
+
+                if (typeof valA === 'string') {
+                    return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                return sortDir === 'asc' ? valA - valB : valB - valA;
             });
 
-            pools = pools.slice(0, CONFIG.POOLS_PER_PAGE);
+            // Update Count
+            countSpan.textContent = renderData.length;
 
-            if (countEl) countEl.textContent = pools.length;
-            tbody.innerHTML = pools.map(pool => {
-                const metrics = calculatePoolMetrics(pool, section.timeframe);
-                
-                const aprClass = metrics.apr > 0.5 ? 'apr-excellent' : metrics.apr > 0.2 ? 'apr-good' : metrics.apr > 0.05 ? 'apr-moderate' : 'apr-low';
-                const utilClass = metrics.util > 0.5 ? 'utilization-excellent' : metrics.util > 0.2 ? 'utilization-high' : metrics.util > 0.05 ? 'utilization-moderate' : 'utilization-low';
-                
-                const feePct = (pool.fee * 100).toFixed(2) + '%';
-                const feeClass = pool.fee < 0.001 ? 'fee-low' : pool.fee < 0.005 ? 'fee-medium' : 'fee-high';
+            // Update Header Sort Icons
+            const table = document.querySelector(`#section-${sectionId} .pool-table`);
+            table.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.sort === sortField) {
+                    th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
 
-                // Protocol Badge Dynamic Styling
-                const pStyle = getProtocolBadgeStyle(pool.protocol);
+            // Render Rows
+            if (renderData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="no-data">No pools found for this selection.</td></tr>`;
+                return;
+            }
+
+            // Limit rows for performance
+            const displayRows = renderData.slice(0, 50);
+
+            tbody.innerHTML = displayRows.map(pool => {
+                const protocolStyle = getProtocolBadgeStyle(pool.protocol);
+                const maxLiquidity = 5000000; // for bar width scaling
                 
+                // Determine APR color
+                let aprClass = 'apr-low';
+                if (pool.displayAPR > 0.5) aprClass = 'apr-moderate';
+                if (pool.displayAPR > 1.0) aprClass = 'apr-good';
+                if (pool.displayAPR > 2.0) aprClass = 'apr-excellent';
+
+                // Determine Utilization color
+                let utilClass = 'utilization-low';
+                if (pool.displayUtil > 0.1) utilClass = 'utilization-moderate';
+                if (pool.displayUtil > 0.25) utilClass = 'utilization-high';
+                if (pool.displayUtil > 0.50) utilClass = 'utilization-excellent';
+
+                const feePct = (pool.fee * 100).toFixed(2);
+                const feeClass = pool.fee < 0.001 ? 'fee-low' : (pool.fee > 0.005 ? 'fee-high' : 'fee-medium');
+
+                const liqWidth = Math.min((pool.liquidity / maxLiquidity) * 100, 100);
+
                 return `
                     <tr>
-                        <td>${escapeHtml(CONFIG.NETWORK_NAMES[pool.chainId] || pool.chainId)}</td>
-                        <td><span class="protocol-badge" style="color:${pStyle.color}; background-color:${pStyle.backgroundColor}">${escapeHtml(pool.protocol)}</span></td>
-                        <td>
+                        <td class="col-chain">${CONFIG.NETWORK_NAMES[pool.chainId] || pool.chainId.toUpperCase()}</td>
+                        <td class="col-protocol">
+                            <span class="protocol-badge" style="color:${protocolStyle.color}; background-color:${protocolStyle.backgroundColor}">
+                                ${escapeHtml(pool.protocol)}
+                            </span>
+                        </td>
+                        <td class="col-pool">
                             <div class="pool-cell">
-                                <a href="${pool.url}" target="_blank" class="pool-link" title="${escapeHtml(pool.name)}">
+                                <a href="${pool.poolUrl}" target="_blank" class="pool-link" title="${escapeHtml(pool.name)}">
                                     ${colorizePoolName(pool.name)}
                                 </a>
-                                <a href="${pool.explorerUrl}" target="_blank" class="explorer-link" title="Explorer">↗</a>
+                                <a href="${pool.explorerUrl}" target="_blank" class="explorer-link" title="Explorer">⬈</a>
                             </div>
                         </td>
-                        <td><span class="fee-badge ${feeClass}">${feePct}</span></td>
-                        <td>${formatUsd(pool.liquidity)}</td>
-                        <td>${formatUsd(metrics.volume)} <span class="tf-indicator">${metrics.timeframeNote}</span></td>
-                        <td class="utilization-value ${utilClass}">${formatUtilization(metrics.util)}</td>
-                        <td class="apr-value ${aprClass}">${(metrics.apr * 100).toFixed(1)}%</td>
+                        <td class="col-fee"><span class="fee-badge ${feeClass}">${feePct}%</span></td>
+                        <td class="col-liquidity liquidity-cell">
+                            <div class="liquidity-bar" style="width: ${liqWidth}%"></div>
+                            <span class="liquidity-value">${formatUsd(pool.liquidity)}</span>
+                        </td>
+                        <td class="col-volume volume-cell">${formatUsd(pool.displayVolume)} <span class="tf-indicator">${CONFIG.TIMEFRAMES[state.sections[sectionId].timeframe].label}</span></td>
+                        <td class="col-util utilization-value ${utilClass}">${formatUtilization(pool.displayUtil)}</td>
+                        <td class="col-apr apr-value ${aprClass}">${(pool.displayAPR * 100).toFixed(1)}%</td>
                     </tr>
                 `;
             }).join('');
-
-            if (pools.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="no-data">No pools found for this selection.</td></tr>`;
-            }
         }
-
-        // ============================================
-        // UI INTERACTION HANDLERS
-        // ============================================
-        
-        window.toggleDropdown = (sectionId) => {
-            const dd = document.getElementById(`dropdown-${sectionId}`);
-            const btn = document.querySelector(`#section-${sectionId} .network-btn`);
-            dd.classList.toggle('open');
-            btn.classList.toggle('open');
-        };
-
-        window.renderNetworkDropdown = (sectionId) => {
-            const content = document.getElementById(`dropdown-content-${sectionId}`);
-            const section = state.sections[sectionId];
-            
-            let html = '';
-            for (const [group, nets] of Object.entries(CONFIG.NETWORK_GROUPS)) {
-                html += `<div class="network-group-label">${escapeHtml(group)}</div>`;
-                nets.forEach(net => {
-                    const isSelected = section.networks.includes(net.id);
-                    const isLoaded = state.loadedNetworks.has(net.id);
-                    html += `
-                        <div class="network-item ${isSelected ? 'selected' : ''} ${!isLoaded ? 'not-loaded' : ''}" 
-                             onclick="toggleNetwork('${sectionId}', '${net.id}')">
-                            <div class="network-checkbox">${isSelected ? '✓' : ''}</div>
-                            <div class="network-name">${escapeHtml(net.name)}</div>
-                            ${net.fast ? '<span class="fast-tag">Fast</span>' : ''}
-                        </div>
-                    `;
-                });
-            }
-            content.innerHTML = html;
-            document.getElementById(`showing-count-${sectionId}`).textContent = section.networks.length;
-            document.getElementById(`net-count-${sectionId}`).textContent = section.networks.length;
-        };
-
-        window.toggleNetwork = (sectionId, netId) => {
-            const section = state.sections[sectionId];
-            const idx = section.networks.indexOf(netId);
-            if (idx > -1) {
-                if (section.networks.length > 1) {
-                    section.networks.splice(idx, 1);
-                }
-            } else {
-                section.networks.push(netId);
-            }
-            renderNetworkDropdown(sectionId);
-            renderSectionTable(sectionId);
-            checkTimeframeAvailability(sectionId);
-        };
-
-        window.resetNetworks = (sectionId) => {
-            state.sections[sectionId].networks = [...CONFIG.INITIAL_NETWORKS];
-            renderNetworkDropdown(sectionId);
-            renderSectionTable(sectionId);
-            checkTimeframeAvailability(sectionId);
-        };
-
-        window.setTimeframe = async (sectionId, tf) => {
-            const section = state.sections[sectionId];
-            if (section.timeframe === tf) return;
-
-            section.timeframe = tf;
-            
-            document.querySelectorAll(`#section-${sectionId} .tf-btn`).forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`tf-btn-${sectionId}-${tf}`).classList.add('active');
-            
-            const th = document.querySelector(`#section-${sectionId} .col-volume`);
-            if (th) th.textContent = `Vol (${CONFIG.TIMEFRAMES[tf].label})`;
-
-            renderSectionTable(sectionId);
-
-            if (tf !== '24h') {
-                const poolsToFetch = getFilteredPools(sectionId).slice(0, CONFIG.POOLS_PER_PAGE)
-                    .filter(p => CONFIG.EVM_NETWORKS.has(p.chainId) && !state.poolHistory.get(p.id)?.[tf]);
-                
-                if (poolsToFetch.length > 0) {
-                    log(`Fetching ${tf} history for ${poolsToFetch.length} pools...`, 'info');
-                    const gt = new GeckoTerminalSource();
-                    for (const pool of poolsToFetch) {
-                        const vol = await gt.fetchHistoricalVolume(pool, CONFIG.TIMEFRAMES[tf].days);
-                        if (vol) {
-                            if (!state.poolHistory.has(pool.id)) state.poolHistory.set(pool.id, {});
-                            state.poolHistory.get(pool.id)[tf] = vol;
-                        }
-                        await sleep(200);
-                    }
-                    renderSectionTable(sectionId);
-                }
-            }
-        };
-        
-        function checkTimeframeAvailability(sectionId) {
-            const section = state.sections[sectionId];
-            const isAllFast = section.networks.every(n => CONFIG.NATIVE_API_NETWORKS.has(n));
-            
-            const btns = {
-                '7d': document.getElementById(`tf-btn-${sectionId}-7d`),
-                '30d': document.getElementById(`tf-btn-${sectionId}-30d`),
-                '1y': document.getElementById(`tf-btn-${sectionId}-1y`)
-            };
-
-            Object.entries(btns).forEach(([tf, btn]) => {
-                if (btn) {
-                    if (isAllFast) {
-                        btn.disabled = true;
-                        btn.title = "Historical data not available for Solana/Sui via Gecko in this mode";
-                    } else {
-                        btn.disabled = false;
-                        btn.title = "";
-                    }
-                }
-            });
-            
-            if (isAllFast && section.timeframe !== '24h') {
-                setTimeframe(sectionId, '24h');
-            }
-        }
-
-        window.sortSection = (sectionId, field) => {
-            const section = state.sections[sectionId];
-            if (section.sortField === field) {
-                section.sortDir = section.sortDir === 'desc' ? 'asc' : 'desc';
-            } else {
-                section.sortField = field;
-                section.sortDir = 'desc';
-            }
-            renderSectionTable(sectionId);
-        };
 
         // ============================================
         // INITIALIZATION
         // ============================================
-        function init() {
-            document.getElementById('refresh-btn').addEventListener('click', loadDashboardData);
-            document.getElementById('debug-toggle').addEventListener('click', () => {
-                document.getElementById('debug-section').classList.toggle('hidden');
-            });
-            document.getElementById('clear-debug').addEventListener('click', () => {
-                state.debugLogs = [];
-                renderDebugLog();
-            });
+        document.getElementById('refresh-btn').addEventListener('click', refreshData);
+        
+        document.getElementById('debug-toggle').addEventListener('click', () => {
+            const sec = document.getElementById('debug-section');
+            sec.classList.toggle('hidden');
+        });
 
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.network-selector')) {
-                    document.querySelectorAll('.network-dropdown').forEach(d => d.classList.remove('open'));
-                    document.querySelectorAll('.network-btn').forEach(b => b.classList.remove('open'));
-                }
-            });
+        document.getElementById('clear-debug').addEventListener('click', () => {
+            state.debugLogs = [];
+            renderDebugLog();
+        });
 
-            loadDashboardData();
-        }
-
-        init();
+        // Start
+        refreshData();
 
     })();
     </script>
