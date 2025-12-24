@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC LP Utilization Dashboard</title>
+    <title>High Utilization LP Dashboard</title>
     <style>
         :root {
             --bg-color: #0a0a0a;
             --bg-color-lighter: #111111;
             --surface-color: #1a1a1a;
+            --surface-color-alt: #141414;
             --primary-text-color: #e0e0e0;
             --secondary-text-color: #888888;
             --border-color: #2a2a2a;
+            --accent-color: #666666;
             --hover-bg-color: #222222;
             --success-color: #4ade80;
             --warning-color: #fbbf24;
@@ -21,6 +23,8 @@
             --usdc-color: #4A90E2;
             --usdt-color: #5CB85C;
             --dai-color: #D4A76A;
+            --sol-color: #9945FF;
+            --sui-color: #6fbcf0;
             --apr-low: #1a5f2a;
             --apr-moderate: #2d8a3e;
             --apr-good: #48bb5c;
@@ -35,7 +39,12 @@
             --section-th-bg: #121212;
             --link-color: #999999;
             --link-color-hover: #cccccc;
+            --liquidity-bar-color: hsl(270, 50%, 35%);
             --geckoterminal-color: #7c3aed;
+            --dexscreener-color: #14F195;
+            
+            /* New Section Title Color */
+            --section-title-color: #9E6CFF;
         }
 
         * {
@@ -53,7 +62,7 @@
         }
 
         header {
-            padding: 1.5rem 2rem;
+            padding: 1.25rem 2rem;
             border-bottom: 1px solid var(--border-color);
             background-color: var(--bg-color-lighter);
         }
@@ -64,28 +73,20 @@
             align-items: flex-start;
             flex-wrap: wrap;
             gap: 1rem;
-            max-width: 1400px;
+            max-width: 1920px;
             margin: 0 auto;
         }
 
         .header-left h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 600;
             color: var(--primary-text-color);
             margin-bottom: 0.4rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .header-left h1 .btc-icon {
-            color: var(--btc-color);
         }
 
         .header-left p {
             color: var(--secondary-text-color);
-            font-size: 0.85rem;
-            max-width: 500px;
+            font-size: 0.9rem;
         }
 
         .header-right {
@@ -108,7 +109,7 @@
         }
 
         .header-status .pool-count {
-            color: var(--btc-color);
+            color: var(--success-color);
             font-weight: 600;
         }
 
@@ -124,67 +125,92 @@
             color: var(--warning-color);
         }
 
+        .header-status .error-indicator {
+            color: var(--error-color);
+        }
+
         main {
-            padding: 1.5rem;
-            max-width: 1400px;
+            padding: 1.25rem;
+            max-width: 1920px;
             margin: 0 auto;
         }
 
         footer {
-            padding: 1rem 2rem;
+            padding: 0.75rem 2rem;
             border-top: 1px solid var(--border-color);
             text-align: center;
             font-size: 0.8rem;
             color: var(--secondary-text-color);
         }
 
-        .data-source {
-            margin-top: 0.4rem;
+        .data-sources {
+            margin-top: 0.5rem;
             font-size: 0.75rem;
-            color: var(--geckoterminal-color);
         }
+
+        .source-gecko { color: var(--geckoterminal-color); }
+        .source-dexscreener { color: var(--dexscreener-color); }
 
         .btn {
             background-color: #333333;
             color: #fff;
             border: 1px solid #444444;
             padding: 0.5rem 1rem;
-            border-radius: 4px;
+            border-radius: 3px;
             font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
         .btn:hover {
             background-color: #444444;
+            transform: translateY(-1px);
         }
 
         .btn:disabled {
             background-color: #222222;
             color: var(--secondary-text-color);
             cursor: not-allowed;
+            transform: none;
         }
 
         .btn-primary {
-            background-color: var(--btc-color);
-            border-color: var(--btc-color);
+            background-color: var(--util-moderate);
+            border-color: var(--util-high);
         }
 
         .btn-primary:hover {
-            background-color: #e8850f;
+            background-color: var(--util-high);
         }
 
         .btn-sm {
-            padding: 0.35rem 0.75rem;
+            padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
+        }
+
+        #progress-container {
+            width: 100%;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--geckoterminal-color), var(--util-excellent));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
         }
 
         .spinner {
             width: 14px;
             height: 14px;
             border: 2px solid var(--border-color);
-            border-top: 2px solid var(--btc-color);
+            border-top: 2px solid var(--primary-text-color);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -195,121 +221,85 @@
             border-width: 1.5px;
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
-        /* Main Panel */
-        .main-panel {
+        #dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            min-height: 500px;
+        }
+
+        #stablecoin-section-wrapper {
+            margin-top: 1.25rem;
+        }
+
+        .pair-section {
             background-color: var(--section-bg);
             border: 1px solid var(--section-border);
-            border-radius: 6px;
+            border-radius: 3px;
             display: flex;
             flex-direction: column;
-            min-height: 500px;
+            min-height: 320px;
+            max-height: 450px;
             position: relative;
         }
 
-        .panel-header {
+        .pair-section.full-width {
+            max-height: 380px;
+        }
+
+        .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.25rem;
+            padding: 0.75rem 1rem;
             background-color: var(--section-header-bg);
             border-bottom: 1px solid var(--section-border);
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .panel-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .panel-title .btc-icon {
-            color: var(--btc-color);
-            font-size: 1.3rem;
-        }
-
-        .pool-count-badge {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--secondary-text-color);
-            background-color: var(--surface-color);
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-        }
-
-        .panel-controls {
-            display: flex;
-            align-items: center;
+            flex-shrink: 0;
             gap: 0.75rem;
             flex-wrap: wrap;
         }
 
-        /* Load Status */
-        .load-status {
+        .section-title {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .status-badge {
-            font-size: 0.7rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            padding: 0.25rem 0.5rem;
-            border-radius: 3px;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
+            color: var(--section-title-color); /* Updated Color */
         }
 
-        .status-badge.quick {
-            background-color: rgba(251, 191, 36, 0.15);
-            color: var(--warning-color);
+        /* Override token colors inside section titles to enforce the purple theme */
+        .section-title span {
+            color: inherit !important;
         }
 
-        .status-badge.full {
-            background-color: rgba(74, 222, 128, 0.15);
-            color: var(--success-color);
+        .pool-count {
+            font-size: 0.85rem;
+            font-weight: 400;
+            opacity: 0.7;
         }
 
-        .load-more-btn {
-            background-color: transparent;
-            color: var(--util-high);
-            border: 1px solid var(--util-moderate);
-            padding: 0.25rem 0.6rem;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
+        .section-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
         }
 
-        .load-more-btn:hover {
-            background-color: var(--util-moderate);
-            color: #fff;
-        }
-
-        .load-more-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Timeframe Toggle */
         .timeframe-toggle {
             display: flex;
+            align-items: center;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 3px;
+            border-radius: 3px;
+            padding: 2px;
             gap: 2px;
         }
 
@@ -317,12 +307,13 @@
             background-color: transparent;
             color: var(--secondary-text-color);
             border: none;
-            padding: 0.35rem 0.6rem;
-            border-radius: 3px;
-            font-size: 0.75rem;
+            padding: 0.3rem 0.55rem;
+            border-radius: 2px;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
+            white-space: nowrap;
         }
 
         .tf-btn:hover {
@@ -331,11 +322,15 @@
         }
 
         .tf-btn.active {
-            background-color: var(--btc-color);
+            background-color: var(--util-moderate);
             color: #fff;
         }
+        
+        .tf-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
 
-        /* Network Selector */
         .network-selector {
             position: relative;
         }
@@ -344,37 +339,38 @@
             background-color: var(--surface-color);
             color: var(--secondary-text-color);
             border: 1px solid var(--border-color);
-            padding: 0.4rem 0.75rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .network-btn:hover {
             background-color: var(--hover-bg-color);
             color: var(--primary-text-color);
+            border-color: #444;
         }
 
         .network-btn.open {
-            border-color: var(--btc-color);
+            border-color: var(--util-moderate);
         }
 
-        .network-count-badge {
-            background-color: var(--btc-color);
+        .network-badge {
+            background-color: var(--util-moderate);
             color: #fff;
-            font-size: 0.7rem;
-            padding: 0.1rem 0.4rem;
-            border-radius: 3px;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 2px;
             font-weight: 600;
         }
 
         .network-arrow {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             transition: transform 0.2s ease;
         }
 
@@ -384,14 +380,14 @@
 
         .network-dropdown {
             position: fixed;
-            width: 300px;
+            width: 320px;
             max-width: calc(100vw - 20px);
-            max-height: 500px;
+            max-height: 600px;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 3px;
             z-index: 9999;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
             display: none;
             flex-direction: column;
         }
@@ -401,21 +397,22 @@
         }
 
         .dropdown-header {
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 0.75rem;
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--secondary-text-color);
             text-transform: uppercase;
             letter-spacing: 0.03em;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .dropdown-header button {
             background: none;
             border: none;
-            color: var(--btc-color);
+            color: var(--util-high);
             font-size: 0.7rem;
             cursor: pointer;
             padding: 0;
@@ -428,7 +425,7 @@
         .dropdown-content {
             flex: 1;
             overflow-y: auto;
-            padding: 0.5rem 0;
+            padding: 0.4rem 0;
         }
 
         .network-group-label {
@@ -436,15 +433,15 @@
             color: var(--secondary-text-color);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 0.6rem 1rem 0.3rem;
+            padding: 0.5rem 0.75rem 0.25rem;
             opacity: 0.7;
         }
 
         .network-item {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            padding: 0.5rem 1rem;
+            gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
             cursor: pointer;
             transition: background-color 0.15s ease;
         }
@@ -454,7 +451,7 @@
         }
 
         .network-item.selected {
-            background-color: rgba(247, 147, 26, 0.1);
+            background-color: rgba(167, 139, 250, 0.1);
         }
 
         .network-item.not-loaded {
@@ -466,58 +463,61 @@
             opacity: 0.7;
         }
 
+        .network-item.not-loaded.selected {
+            background-color: rgba(251, 191, 36, 0.15);
+            opacity: 0.8;
+        }
+
         .network-checkbox {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 1px solid var(--border-color);
-            border-radius: 3px;
+            border-radius: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #fff;
             background-color: var(--bg-color);
             flex-shrink: 0;
         }
 
         .network-item.selected .network-checkbox {
-            background-color: var(--btc-color);
-            border-color: var(--btc-color);
+            background-color: var(--util-moderate);
+            border-color: var(--util-high);
+        }
+
+        .network-item.not-loaded.selected .network-checkbox {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
         }
 
         .network-name {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--primary-text-color);
             flex: 1;
         }
 
-        .network-tag {
+        .fast-tag {
             font-size: 0.6rem;
-            padding: 0.1rem 0.35rem;
-            border-radius: 3px;
-        }
-
-        .network-tag.loaded {
-            color: var(--success-color);
-            background-color: rgba(74, 222, 128, 0.15);
-        }
-
-        .network-tag.not-loaded {
-            color: var(--warning-color);
-            background-color: rgba(251, 191, 36, 0.15);
+            color: var(--sol-color);
+            background-color: rgba(153, 69, 255, 0.15);
+            padding: 0.1rem 0.3rem;
+            border-radius: 2px;
         }
 
         .dropdown-footer {
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 0.75rem;
             border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
             gap: 0.5rem;
         }
 
         .dropdown-footer-info {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--secondary-text-color);
         }
 
@@ -531,17 +531,57 @@
             gap: 0.5rem;
         }
 
-        /* Table */
-        .panel-content {
+        .dropdown-footer .btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .section-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(10, 10, 10, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .section-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .section-overlay .spinner {
+            width: 28px;
+            height: 28px;
+            border-width: 3px;
+            border-top-color: var(--util-high);
+            margin-bottom: 0.75rem;
+        }
+
+        .section-overlay-text {
+            font-size: 0.85rem;
+            color: var(--secondary-text-color);
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .section-content {
             flex: 1;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         .table-container {
             flex: 1;
             overflow: auto;
+            min-height: 0;
         }
 
         .pool-table {
@@ -553,28 +593,32 @@
 
         .pool-table th,
         .pool-table td {
-            padding: 0.65rem 0.85rem;
+            padding: 0.55rem 0.7rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
+            vertical-align: middle;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .pool-table .col-chain { width: 90px; }
-        .pool-table .col-protocol { width: 100px; }
-        .pool-table .col-type { width: 90px; }
-        .pool-table .col-pool { width: 180px; }
-        .pool-table .col-fee { width: 70px; }
-        .pool-table .col-liquidity { width: 110px; text-align: right; }
-        .pool-table .col-volume { width: 120px; text-align: right; }
-        .pool-table .col-util { width: 85px; text-align: right; }
-        .pool-table .col-apr { width: 100px; text-align: right; }
+        .pool-table .col-chain { width: 80px; }
+        .pool-table .col-protocol { width: 90px; }
+        .pool-table .col-pool { width: 200px; min-width: 180px; }
+        .pool-table .col-fee { width: 65px; }
+        .pool-table .col-liquidity { width: 100px; }
+        .pool-table .col-volume { width: 110px; }
+        .pool-table .col-util { width: 80px; }
+        .pool-table .col-apr { width: 90px; }
 
+        .pool-table .col-liquidity,
+        .pool-table .col-volume,
+        .pool-table .col-util,
+        .pool-table .col-apr,
+        .pool-table td:nth-child(5),
         .pool-table td:nth-child(6),
         .pool-table td:nth-child(7),
-        .pool-table td:nth-child(8),
-        .pool-table td:nth-child(9) {
+        .pool-table td:nth-child(8) {
             text-align: right;
         }
 
@@ -586,7 +630,7 @@
             z-index: 10;
             cursor: pointer;
             user-select: none;
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             text-transform: uppercase;
             letter-spacing: 0.03em;
             color: var(--secondary-text-color);
@@ -599,7 +643,7 @@
         .pool-table th[data-sort]::after {
             content: ' ⇅';
             opacity: 0.4;
-            font-size: 0.6em;
+            font-size: 0.65em;
         }
 
         .pool-table th.sort-asc::after {
@@ -620,13 +664,20 @@
             background-color: var(--hover-bg-color);
         }
 
-        .pool-link {
+        .pool-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pool-link,
+        .explorer-link {
             color: var(--link-color);
             text-decoration: none;
             font-weight: 500;
+            transition: color 0.15s ease;
         }
 
-        .pool-link:hover {
+        .pool-link:hover,
+        .explorer-link:hover {
             color: var(--link-color-hover);
             text-decoration: underline;
         }
@@ -635,88 +686,65 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
+            min-width: 180px;
         }
 
-        .explorer-link {
-            opacity: 0.4;
+        .pool-cell .pool-link {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pool-cell .explorer-link {
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
             font-size: 0.75rem;
-            text-decoration: none;
+            opacity: 0.5;
         }
 
-        .explorer-link:hover {
+        .pool-cell .explorer-link:hover {
             opacity: 1;
         }
 
-        /* Token Colors */
         .token-btc { color: var(--btc-color); font-weight: 600; }
         .token-eth { color: var(--eth-color); font-weight: 600; }
         .token-usdc { color: var(--usdc-color); font-weight: 600; }
         .token-usdt { color: var(--usdt-color); font-weight: 600; }
         .token-dai { color: var(--dai-color); font-weight: 600; }
+        .token-sol { color: var(--sol-color); font-weight: 600; }
+        .token-sui { color: var(--sui-color); font-weight: 600; }
         .token-stable { color: var(--primary-text-color); font-weight: 500; }
-        .token-prefix { font-weight: 400; opacity: 0.8; }
+        .token-prefix { font-weight: 400; }
 
-        /* Badges */
         .protocol-badge {
             display: inline-block;
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.75rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 2px;
+            font-size: 0.7rem;
             font-weight: 500;
-            background-color: rgba(255, 255, 255, 0.08);
-            max-width: 90px;
+            /* Base style, color set via JS/Inline */
+            background-color: rgba(255, 255, 255, 0.08); 
+            max-width: 80px;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        .type-badge {
-            display: inline-block;
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .type-badge.stable {
-            background-color: rgba(74, 144, 226, 0.15);
-            color: var(--usdc-color);
-        }
-
-        .type-badge.eth {
-            background-color: rgba(135, 206, 235, 0.15);
-            color: var(--eth-color);
-        }
-
-        .type-badge.wrapped {
-            background-color: rgba(247, 147, 26, 0.15);
-            color: var(--btc-color);
+            white-space: nowrap;
         }
 
         .fee-badge {
             display: inline-block;
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
+            padding: 0.12rem 0.35rem;
+            border-radius: 2px;
             font-size: 0.75rem;
             font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--secondary-text-color);
         }
 
-        .fee-badge.fee-low {
-            background-color: rgba(74, 222, 128, 0.2);
-            color: var(--success-color);
-        }
+        .fee-badge.fee-low { background-color: rgba(74, 222, 128, 0.2); color: var(--success-color); }
+        .fee-badge.fee-medium { background-color: rgba(251, 191, 36, 0.2); color: var(--warning-color); }
+        .fee-badge.fee-high { background-color: rgba(248, 113, 113, 0.2); color: var(--error-color); }
 
-        .fee-badge.fee-medium {
-            background-color: rgba(251, 191, 36, 0.2);
-            color: var(--warning-color);
-        }
-
-        .fee-badge.fee-high {
-            background-color: rgba(248, 113, 113, 0.2);
-            color: var(--error-color);
-        }
-
-        /* Metrics */
         .liquidity-cell {
             position: relative;
             font-weight: 500;
@@ -727,9 +755,10 @@
             left: 0;
             top: 0;
             bottom: 0;
-            opacity: 0.3;
-            border-radius: 2px;
-            background: linear-gradient(90deg, rgba(247, 147, 26, 0.3), rgba(247, 147, 26, 0.5));
+            opacity: 0.4;
+            border-radius: 1px;
+            z-index: 0;
+            background: linear-gradient(90deg, hsl(270, 50%, 25%), hsl(270, 50%, 40%));
         }
 
         .liquidity-value {
@@ -749,110 +778,90 @@
         .utilization-moderate { color: var(--util-moderate); }
         .utilization-low { color: var(--util-low); }
 
+        .no-data {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--secondary-text-color);
+            font-size: 0.9rem;
+        }
+
         .tf-indicator {
             font-size: 0.65rem;
             opacity: 0.6;
-            margin-left: 0.25rem;
+            margin-left: 0.2rem;
+            display: inline-block;
+            min-width: 28px;
         }
 
-        .apr-basis {
-            font-size: 0.6rem;
-            font-weight: 400;
-            opacity: 0.6;
-            text-transform: none;
-            letter-spacing: 0;
+        .volume-cell, .apr-cell { white-space: nowrap; }
+
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: var(--bg-color); }
+        .table-container::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: var(--secondary-text-color); }
+
+        #debug-section {
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
         }
 
-        .no-data {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--secondary-text-color);
-            font-size: 0.9rem;
-        }
-
-        /* Overlay */
-        .panel-overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(10, 10, 10, 0.92);
+        .debug-header {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
-            border-radius: 6px;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
-        .panel-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .panel-overlay .spinner {
-            width: 32px;
-            height: 32px;
-            border-width: 3px;
-            margin-bottom: 1rem;
-        }
-
-        .panel-overlay-text {
-            font-size: 0.9rem;
+        .debug-toggle {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
             color: var(--secondary-text-color);
-            text-align: center;
+            padding: 0.3rem 0.6rem;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            cursor: pointer;
         }
 
-        /* Scrollbar */
-        .table-container::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .debug-toggle:hover {
+            background-color: var(--hover-bg-color);
+            color: var(--primary-text-color);
         }
 
-        .table-container::-webkit-scrollbar-track {
-            background: var(--bg-color);
+        #debug-log {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 1rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.72rem;
+            max-height: 280px;
+            overflow-y: auto;
+            line-height: 1.5;
         }
 
-        .table-container::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
+        .log-error { color: var(--error-color); }
+        .log-warn { color: var(--warning-color); }
+        .log-success { color: var(--success-color); }
+        .log-info { color: var(--secondary-text-color); }
+        .log-gecko { color: var(--geckoterminal-color); }
+        .log-dexscreener { color: var(--dexscreener-color); }
+
+        @media (max-width: 1200px) {
+            #dashboard-grid { grid-template-columns: 1fr; }
         }
 
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-text-color);
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
             header { padding: 1rem; }
-            main { padding: 1rem; }
-            
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .header-right {
-                align-items: flex-start;
-                width: 100%;
-            }
-
-            .panel-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .panel-controls {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .pool-table th,
-            .pool-table td {
-                padding: 0.5rem 0.6rem;
-                font-size: 0.8rem;
-            }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .header-right { align-items: flex-start; width: 100%; }
+            .header-left h1 { font-size: 1.3rem; }
+            main { padding: 0.75rem; }
+            .section-header { flex-direction: column; align-items: flex-start; }
+            .section-controls { width: 100%; justify-content: space-between; }
+            .pair-section { min-height: 280px; max-height: 400px; }
+            .pool-table th, .pool-table td { padding: 0.45rem 0.5rem; font-size: 0.78rem; }
+            .pool-table .col-pool { min-width: 150px; }
         }
     </style>
 </head>
@@ -860,8 +869,8 @@
     <header>
         <div class="header-content">
             <div class="header-left">
-                <h1><span class="btc-icon">₿</span> BTC LP Utilization Dashboard</h1>
-                <p>Discover high-utilization Bitcoin liquidity pools. Ranked by Utilization % (Daily Volume ÷ Liquidity). APR estimated from 24h volume × fee tier.</p>
+                <h1>High Utilization LP Dashboard</h1>
+                <p>Find heavily utilized LPs. Ranks pools by Utilization % (Volume ÷ Liquidity × 100). APR estimated from volume × fee. Powered by Dexscreener & GeckoTerminal.</p>
             </div>
             <div class="header-right">
                 <div class="header-controls">
@@ -871,7 +880,7 @@
                             Initializing...
                         </span>
                     </div>
-                    <button id="refresh-btn" class="btn btn-sm">Refresh</button>
+                    <button id="refresh-btn" class="btn btn-sm">Refresh Data</button>
                 </div>
                 <div id="last-updated" style="font-size: 0.75rem; color: var(--secondary-text-color);"></div>
             </div>
@@ -879,64 +888,29 @@
     </header>
 
     <main>
-        <div class="main-panel" id="main-panel">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <span class="btc-icon">₿</span>
-                    <span>BTC Liquidity Pools</span>
-                    <span class="pool-count-badge" id="pool-count">0 pools</span>
-                </div>
-                <div class="panel-controls">
-                    <div class="load-status" id="load-status">
-                        <span class="status-badge quick">Quick Load</span>
-                        <button class="load-more-btn" id="load-full-btn">Load All Pools</button>
-                    </div>
-                    <div class="timeframe-toggle" id="timeframe-toggle">
-                        <button class="tf-btn active" data-tf="24h">24h</button>
-                        <button class="tf-btn" data-tf="7d">7d</button>
-                        <button class="tf-btn" data-tf="30d">30d</button>
-                    </div>
-                    <div class="network-selector" id="network-selector">
-                        <button class="network-btn" id="network-btn">
-                            <span>Networks</span>
-                            <span class="network-count-badge" id="network-badge">5</span>
-                            <span class="network-arrow">▼</span>
-                        </button>
-                        <div class="network-dropdown" id="network-dropdown"></div>
-                    </div>
-                </div>
+        <div id="progress-container" class="hidden">
+            <div id="progress-bar"></div>
+        </div>
+        <div id="dashboard-grid"></div>
+        <div id="stablecoin-section-wrapper"></div>
+        <div id="debug-section" class="hidden">
+            <div class="debug-header">
+                <span style="font-size: 0.75rem; color: var(--secondary-text-color);">Debug Log</span>
+                <button id="clear-debug" class="debug-toggle">Clear</button>
             </div>
-            <div class="panel-content">
-                <div class="table-container">
-                    <table class="pool-table">
-                        <thead>
-                            <tr>
-                                <th class="col-chain" data-sort="chain">Chain</th>
-                                <th class="col-protocol" data-sort="protocol">Protocol</th>
-                                <th class="col-type" data-sort="pairType">Type</th>
-                                <th class="col-pool" data-sort="name">Pool</th>
-                                <th class="col-fee" data-sort="fee">Fee</th>
-                                <th class="col-liquidity" data-sort="liquidity">Liquidity</th>
-                                <th class="col-volume" data-sort="displayVolume">Volume</th>
-                                <th class="col-util" data-sort="utilization">Util %</th>
-                                <th class="col-apr" data-sort="apr">APR <span class="apr-basis">(24h)</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="pool-tbody"></tbody>
-                    </table>
-                    <div class="no-data hidden" id="no-data">No BTC pools found. Try adding more networks.</div>
-                </div>
-            </div>
-            <div class="panel-overlay" id="panel-overlay">
-                <div class="spinner"></div>
-                <div class="panel-overlay-text" id="overlay-text">Loading pools...</div>
-            </div>
+            <div id="debug-log"></div>
         </div>
     </main>
 
     <footer>
-        <p>Always DYOR. Data refreshes on demand.</p>
-        <div class="data-source">● Powered by GeckoTerminal API</div>
+        <p>
+            Always DYOR. Historical data (7d/30d/1y) relies on GeckoTerminal API limits.
+            <button id="debug-toggle" class="debug-toggle" style="margin-left: 1rem;">Toggle Debug</button>
+        </p>
+        <div class="data-sources">
+            <span class="source-dexscreener">● Dexscreener (Discovery/24h)</span> |
+            <span class="source-gecko">● GeckoTerminal (OHLCV/EVM)</span>
+        </div>
     </footer>
 
     <script>
@@ -947,45 +921,91 @@
         // CONFIGURATION
         // ============================================
         const CONFIG = {
-            API_BASE: 'https://api.geckoterminal.com/api/v2',
-            RATE_LIMIT_MS: 2200,
+            // API Endpoints
+            APIS: {
+                GECKOTERMINAL: 'https://api.geckoterminal.com/api/v2',
+                DEXSCREENER: 'https://api.dexscreener.com/latest/dex',
+            },
+
+            // Rate limits
+            RATE_LIMITS: {
+                GECKOTERMINAL: 2200,
+                DEXSCREENER: 300,
+                DEFAULT: 1000
+            },
+
             MAX_RETRIES: 3,
-            TIMEOUT_MS: 25000,
+            RETRY_DELAY_MS: 2000,
+            TIMEOUT_MS: 15000,
             MIN_LIQUIDITY: 50000,
-            MIN_VOLUME: 1000,
-            DEFAULT_FEE: 0.3,
-            QUICK_PAGES: 2,
-            FULL_PAGES: 5,
+            MIN_VOLUME_24H: 1000,
+            POOLS_PER_PAGE: 20,
+            
+            INITIAL_NETWORKS: ['solana', 'sui', 'eth', 'arbitrum', 'base'],
 
-            // Top 5 networks by volume
-            INITIAL_NETWORKS: ['eth', 'arbitrum', 'base', 'polygon_pos', 'optimism'],
+            // Map Dexscreener chain IDs to internal IDs
+            CHAIN_ID_MAP: {
+                'solana': 'solana',
+                'ethereum': 'eth',
+                'arbitrum': 'arbitrum',
+                'bsc': 'bsc',
+                'polygon': 'polygon_pos',
+                'avalanche': 'avax',
+                'optimism': 'optimism',
+                'sui': 'sui',
+                'base': 'base',
+                'fantom': 'fantom',
+                'zksync': 'zksync',
+                'linea': 'linea',
+                'gnosis': 'gnosis',
+                'celo': 'celo',
+                'blast': 'blast',
+                'manta': 'manta',
+                'scroll': 'scroll',
+                'mode': 'mode'
+            },
 
-            NETWORKS: {
-                'L1 Chains': [
-                    { id: 'eth', name: 'Ethereum' },
-                    { id: 'bsc', name: 'BSC' },
-                    { id: 'avax', name: 'Avalanche' }
+            // All internal networks supported
+            ALL_SUPPORTED_NETWORKS: [
+                'solana', 'sui', 'eth', 'arbitrum', 'base', 'optimism', 'polygon_pos', 
+                'bsc', 'avax', 'fantom', 'zksync', 'linea', 'gnosis', 'celo', 'blast', 'manta', 'scroll', 'mode'
+            ],
+
+            NETWORK_GROUPS: {
+                'Non-EVM (Fast)': [
+                    { id: 'solana', name: 'Solana', initial: true, fast: true },
+                    { id: 'sui', name: 'Sui', initial: true, fast: true }
                 ],
-                'L2 & Rollups': [
-                    { id: 'arbitrum', name: 'Arbitrum' },
-                    { id: 'base', name: 'Base' },
+                'L1 Networks': [
+                    { id: 'eth', name: 'Ethereum', initial: true },
+                    { id: 'bsc', name: 'BSC' },
+                    { id: 'avax', name: 'Avalanche' },
+                    { id: 'fantom', name: 'Fantom' },
+                    { id: 'gnosis', name: 'Gnosis' }
+                ],
+                'Ethereum L2s': [
+                    { id: 'arbitrum', name: 'Arbitrum', initial: true },
+                    { id: 'base', name: 'Base', initial: true },
                     { id: 'optimism', name: 'Optimism' },
-                    { id: 'polygon_pos', name: 'Polygon' },
                     { id: 'zksync', name: 'zkSync' },
                     { id: 'linea', name: 'Linea' },
+                    { id: 'mode', name: 'Mode' },
+                    { id: 'manta', name: 'Manta' },
                     { id: 'scroll', name: 'Scroll' },
                     { id: 'blast', name: 'Blast' }
                 ],
                 'Other': [
-                    { id: 'mantle', name: 'Mantle' },
-                    { id: 'gnosis', name: 'Gnosis' }
+                    { id: 'polygon_pos', name: 'Polygon' },
+                    { id: 'celo', name: 'Celo' }
                 ]
             },
 
             NETWORK_NAMES: {
                 eth: 'Ethereum', arbitrum: 'Arbitrum', optimism: 'Optimism', base: 'Base',
                 polygon_pos: 'Polygon', zksync: 'zkSync', linea: 'Linea', bsc: 'BSC',
-                avax: 'Avalanche', gnosis: 'Gnosis', mantle: 'Mantle', scroll: 'Scroll', blast: 'Blast'
+                avax: 'Avalanche', fantom: 'Fantom', gnosis: 'Gnosis', mode: 'Mode',
+                manta: 'Manta', scroll: 'Scroll', blast: 'Blast',
+                celo: 'Celo', solana: 'Solana', sui: 'Sui'
             },
 
             EXPLORERS: {
@@ -998,70 +1018,106 @@
                 linea: 'https://lineascan.build/address/',
                 bsc: 'https://bscscan.com/address/',
                 avax: 'https://snowtrace.io/address/',
+                fantom: 'https://ftmscan.com/address/',
                 gnosis: 'https://gnosisscan.io/address/',
-                mantle: 'https://explorer.mantle.xyz/address/',
+                mode: 'https://explorer.mode.network/address/',
+                manta: 'https://pacific-explorer.manta.network/address/',
                 scroll: 'https://scrollscan.com/address/',
-                blast: 'https://blastscan.io/address/'
+                blast: 'https://blastscan.io/address/',
+                solana: 'https://solscan.io/account/',
+                sui: 'https://suiscan.xyz/mainnet/object/'
             },
 
-            // BTC-focused searches
-            SEARCHES: [
-                'WBTC USDC', 'WBTC USDT', 'WBTC WETH', 'WBTC ETH', 'WBTC DAI',
-                'cbBTC USDC', 'cbBTC USDT', 'cbBTC WETH', 'cbBTC ETH',
-                'tBTC USDC', 'tBTC WETH', 'WBTC cbBTC', 'WBTC tBTC',
-                'BTC USDC', 'BTC USDT', 'BTC ETH'
-            ],
+            // Updated Search Queries per requirements
+            SEARCHES: {
+                'btc-stable': ['WBTC USDC', 'WBTC USDT', 'cbBTC USDC', 'tBTC USDC', 'WBTC DAI', 'BTC USDC', 'BTC USDT'],
+                'eth-stable': ['WETH USDC', 'WETH USDT', 'ETH USDC', 'ETH USDT', 'WETH DAI', 'ETH DAI', 'stETH USDC', 'rETH USDC', 'cbETH USDC'],
+                'btc-eth': ['WBTC WETH', 'WBTC ETH', 'cbBTC WETH', 'BTC ETH', 'WBTC rETH', 'WBTC stETH'],
+                'wrapped': ['wstETH WETH', 'wstETH ETH', 'rETH WETH', 'rETH ETH', 'cbETH WETH', 'cbETH ETH', 'stETH ETH', 'wstETH rETH'],
+                'stable-stable': ['USDC USDT', 'USDC DAI', 'USDT DAI', 'GHO USDC', 'FRAX USDC', 'LUSD USDC', 'crvUSD USDC']
+            },
 
             TIMEFRAMES: {
-                '24h': { days: 1 },
-                '7d': { days: 7 },
-                '30d': { days: 30 }
+                '24h': { days: 1, label: '24h' },
+                '7d': { days: 7, label: '7d' },
+                '30d': { days: 30, label: '30d' },
+                '1y': { days: 365, label: '1y' }
             },
 
-            // BTC variants
-            BTC_TOKENS: new Set([
-                'btc', 'wbtc', 'cbbtc', 'tbtc', 'renbtc', 'sbtc', 'hbtc', 'btcb',
-                'fbtc', 'lbtc', 'solvbtc', 'unibtc', 'pumpbtc', 'ebtc', 'mbtc'
-            ]),
+            SECTIONS: [
+                { id: 'btc-stable', title: '<span class="token-btc">BTC</span> / Stablecoin', grid: true },
+                { id: 'eth-stable', title: 'ETH / Stablecoin', grid: true },
+                { id: 'btc-eth', title: '<span class="token-btc">BTC</span> / <span class="token-eth">ETH</span>', grid: true },
+                { id: 'wrapped', title: 'Wrapped & LST (ETH)', grid: true },
+                { id: 'stable-stable', title: 'Stablecoin Pairs', grid: false }
+            ],
 
-            // ETH variants
-            ETH_TOKENS: new Set([
-                'eth', 'weth', 'steth', 'wsteth', 'reth', 'cbeth', 'meth', 'frxeth', 'weeth', 'ezeth'
-            ]),
+            ASSETS: {
+                BTC: ['btc', 'wbtc', 'cbbtc', 'tbtc', 'renbtc', 'sbtc', 'hbtc', 'wbtce', 'btcb', 'obtc', 'pbtc', 'ibtc', 'fbtc', 'lbtc', 'kbtc', 'ebtc', 'solvbtc', 'unibtc', 'pumpbtc', 'dlcbtc', 'stbtc', 'mbtc', 'xbtc', 'abtc', 'nbtc', 'dbtc', 'zbtc', 'ubtc', 'hemibtc', 'vbtc', 'yybtc', 'bbtc', 'gbtc', 'qbtc'],
+                ETH: ['eth', 'weth', 'steth', 'wsteth', 'reth', 'cbeth', 'wethe', 'ethb', 'seth', 'meth', 'oeth', 'frxeth', 'sfrxeth', 'sweth', 'ankreth', 'eeth', 'weeth', 'ezeth', 'rseth', 'pxeth', 'unieth', 'ethx', 'insteth', 'neth', 'oseth', 'mpeth', 'ineth', 'wbeth', 'rsweth', 'saeth', 'apxeth', 'ueth', 'wheth', 'zeth', 'heth', 'veth', 'aeth', 'deth', 'yeth', 'yyeth', 'geth', 'qeth'],
+                SOL: ['sol', 'wsol', 'msol', 'jitosol', 'bsol', 'stsol', 'scnsol', 'laine', 'vsol', 'jupsol', 'bonksol', 'lsol', 'cgntSOL', 'daoSOL', 'lainesol', 'picosol', 'pwrsol', 'hubsol', 'compasssol', 'hades', 'infinitysol', 'riskysol'],
+                SUI: ['sui', 'wsui', 'afsui', 'hasui', 'vsui', 'stasui'],
+                STABLE: ['usdc', 'usdt', 'dai', 'usdbc', 'frax', 'lusd', 'usds', 'crvusd', 'tusd', 'busd', 'gusd', 'usdp', 'usdd', 'pyusd', 'eusd', 'gho', 'mkusd', 'dola', 'susd', 'usd+', 'usdb', 'usdm', 'usde', 'usd0', 'fdusd', 'eur', 'eurt', 'eurc', 'ageur', 'ceur', 'usdk', 'usdn', 'mimatic', 'mai', 'alusd', 'mim', 'susdv2', 'susde', 'ousdt', 'ousdc', 'odai', 'wusdc', 'wusdt', 'wdai', 'usdce', 'usdtce', 'daie']
+            },
 
-            // Stablecoins
-            STABLE_TOKENS: new Set([
-                'usdc', 'usdt', 'dai', 'usdbc', 'frax', 'lusd', 'usds', 'crvusd',
-                'tusd', 'busd', 'gusd', 'gho', 'pyusd', 'usde', 'fdusd'
-            ]),
+            EXCLUDED: new Set(['btcbull', 'btcbear', 'ethbull', 'ethbear', 'btc2x', 'eth2x', 'btc3x', 'eth3x', 'btcup', 'btcdown', 'ethup', 'ethdown', 'ethfi', 'etherfi', 'btcpay', 'ethpay', 'btcdao', 'ethdao', 'btcix', 'ethix', 'methane', 'methanol', 'ethanol', 'ethernet', 'synthesis', 'synthetic', 'aesthetics', 'bethel', 'beth', 'elizabeth', 'macbeth']),
 
-            // Excluded tokens
-            EXCLUDED: new Set([
-                'btcbull', 'btcbear', 'btc2x', 'btc3x', 'btcup', 'btcdown', 'btcpay'
-            ])
+            NATIVE_API_NETWORKS: new Set(['solana', 'sui']),
+            EVM_NETWORKS: new Set(['eth', 'arbitrum', 'optimism', 'base', 'polygon_pos', 'zksync', 'linea', 'bsc', 'avax', 'fantom', 'gnosis', 'mode', 'manta', 'scroll', 'blast', 'celo'])
         };
+
+        const ASSET_MAP = {};
+        Object.entries(CONFIG.ASSETS).forEach(([cls, tokens]) => {
+            tokens.forEach(t => ASSET_MAP[t.toLowerCase().replace(/\./g, '')] = cls);
+        });
 
         // ============================================
         // STATE
         // ============================================
         const state = {
             pools: new Map(),
+            poolHistory: new Map(),
             loadedNetworks: new Set(),
-            selectedNetworks: [...CONFIG.INITIAL_NETWORKS],
-            pendingNetworks: [...CONFIG.INITIAL_NETWORKS],
             isLoading: false,
-            isFullLoad: false,
-            timeframe: '24h',
-            sortField: 'utilization',
-            sortDir: 'desc',
-            ohlcvCache: {},
-            lastApiCall: 0
+            debugLogs: [],
+            apiCalls: 0,
+            lastApiCalls: {},
+            sections: {},
+            dexscreenerQueries: []
         };
+
+        CONFIG.SECTIONS.forEach(s => {
+            state.sections[s.id] = {
+                networks: [...CONFIG.INITIAL_NETWORKS],
+                timeframe: '24h',
+                sortField: 'utilization',
+                sortDir: 'desc',
+                isFastSection: false
+            };
+        });
 
         // ============================================
         // UTILITIES
         // ============================================
         const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        function log(msg, type = 'info') {
+            const ts = new Date().toLocaleTimeString();
+            state.debugLogs.push({ ts, type, msg });
+            if (state.debugLogs.length > 500) state.debugLogs = state.debugLogs.slice(-400);
+            console.log(`[${ts}] [${type.toUpperCase()}] ${msg}`);
+            renderDebugLog();
+        }
+
+        function renderDebugLog() {
+            const el = document.getElementById('debug-log');
+            if (el) {
+                el.innerHTML = state.debugLogs.map(l =>
+                    `<div class="log-${l.type}">[${l.ts}] ${l.msg}</div>`
+                ).join('');
+                el.scrollTop = el.scrollHeight;
+            }
+        }
 
         function escapeHtml(str) {
             const div = document.createElement('div');
@@ -1070,775 +1126,758 @@
         }
 
         function formatUsd(val) {
+            if (!val && val !== 0) return '$0.00';
             if (val >= 1e9) return '$' + (val / 1e9).toFixed(2) + 'B';
             if (val >= 1e6) return '$' + (val / 1e6).toFixed(2) + 'M';
             if (val >= 1e3) return '$' + (val / 1e3).toFixed(1) + 'K';
-            return '$' + val.toFixed(0);
+            return '$' + val.toFixed(2);
         }
 
-        function formatPercent(val) {
-            const pct = val * 100;
+        function formatUtilization(util) {
+            const pct = util * 100;
             if (pct >= 100) return pct.toFixed(0) + '%';
             if (pct >= 10) return pct.toFixed(1) + '%';
             return pct.toFixed(2) + '%';
         }
 
-        function normalize(sym) {
-            return sym ? sym.toLowerCase().replace(/\./g, '').trim() : '';
-        }
-
-        // ============================================
-        // UI UPDATES
-        // ============================================
-        function updateStatus(msg, loading = false) {
+        function updateHeaderStatus(msg, type = 'info', loading = false) {
             const el = document.getElementById('header-status');
+            if (!el) return;
             if (loading) {
-                el.innerHTML = `<span class="loading-indicator"><span class="spinner spinner-sm"></span> ${escapeHtml(msg)}</span>`;
-            } else {
-                const count = state.pools.size;
-                const nets = state.loadedNetworks.size;
-                el.innerHTML = `<span class="pool-count">${count}</span> pools from <span class="network-count">${nets}</span> networks`;
-            }
-        }
-
-        function setOverlay(active, msg = 'Loading...') {
-            const overlay = document.getElementById('panel-overlay');
-            document.getElementById('overlay-text').textContent = msg;
-            overlay.classList.toggle('active', active);
-        }
-
-        function updateLoadStatus() {
-            const container = document.getElementById('load-status');
-            if (state.isFullLoad) {
-                container.innerHTML = `<span class="status-badge full">Full Data</span>`;
-            } else {
-                container.innerHTML = `
-                    <span class="status-badge quick">Quick Load</span>
-                    <button class="load-more-btn" id="load-full-btn">Load All Pools</button>
+                el.innerHTML = `
+                    <span class="loading-indicator">
+                        <span class="spinner spinner-sm"></span>
+                        ${escapeHtml(msg)}
+                    </span>
                 `;
-                document.getElementById('load-full-btn').addEventListener('click', loadFullData);
+            } else if (type === 'error') {
+                el.innerHTML = `<span class="error-indicator">${escapeHtml(msg)}</span>`;
+            } else if (type === 'success') {
+                const poolCount = state.pools.size;
+                const networkCount = state.loadedNetworks.size;
+                el.innerHTML = `
+                    <span class="pool-count">${poolCount}</span> pools from
+                    <span class="network-count">${networkCount}</span> networks
+                `;
+            } else {
+                el.innerHTML = escapeHtml(msg);
             }
+        }
+
+        function updateProgress(pct) {
+            const container = document.getElementById('progress-container');
+            const bar = document.getElementById('progress-bar');
+            if (pct > 0 && pct < 100) {
+                container.classList.remove('hidden');
+                bar.style.width = pct + '%';
+            } else {
+                container.classList.add('hidden');
+                bar.style.width = '0%';
+            }
+        }
+
+        // Helper to get distinct color for protocol badges (Red-Orange-Yellow Spectrum)
+        function getProtocolBadgeStyle(name) {
+            let hash = 0;
+            const str = name.toLowerCase();
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            // HSL Range: 10 (Red-Orange) to 45 (Yellow-Orange)
+            // Avoiding pure Red (0) and pure Yellow (60)
+            const hue = Math.abs(hash % 35) + 10; 
+            // High Saturation, Medium Lightness for readability but "hot" colors
+            const color = `hsl(${hue}, 85%, 45%)`;
+            return {
+                color: color,
+                backgroundColor: `hsla(${hue}, 85%, 25%, 0.4)`
+            };
         }
 
         // ============================================
         // TOKEN FORMATTING
         // ============================================
-        function formatToken(symbol) {
+        function formatTokenSymbol(symbol) {
             if (!symbol) return '';
-            const upper = symbol.toUpperCase();
-            const lower = normalize(symbol);
+            const original = symbol.trim();
+            const upper = original.toUpperCase();
+            const lower = original.toLowerCase();
 
-            if (CONFIG.BTC_TOKENS.has(lower) || lower.includes('btc')) {
-                const idx = upper.indexOf('BTC');
-                if (idx !== -1) {
-                    const prefix = symbol.substring(0, idx).toLowerCase();
-                    const suffix = symbol.substring(idx + 3).toLowerCase();
-                    let html = prefix ? `<span class="token-prefix">${escapeHtml(prefix)}</span>` : '';
-                    html += `<span class="token-btc">BTC</span>`;
-                    html += suffix ? `<span class="token-prefix">${escapeHtml(suffix)}</span>` : '';
-                    return html;
-                }
+            if (upper === 'SOL' || upper.endsWith('SOL')) {
+                const solIndex = upper.indexOf('SOL');
+                const prefix = original.substring(0, solIndex).toLowerCase();
+                const suffix = original.substring(solIndex + 3).toLowerCase();
+                let html = '';
+                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
+                html += `<span class="token-sol">SOL</span>`;
+                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
+                return html;
             }
-
-            if (CONFIG.ETH_TOKENS.has(lower) || lower.includes('eth')) {
-                const idx = upper.indexOf('ETH');
-                if (idx !== -1) {
-                    const prefix = symbol.substring(0, idx).toLowerCase();
-                    const suffix = symbol.substring(idx + 3).toLowerCase();
-                    let html = prefix ? `<span class="token-prefix">${escapeHtml(prefix)}</span>` : '';
-                    html += `<span class="token-eth">ETH</span>`;
-                    html += suffix ? `<span class="token-prefix">${escapeHtml(suffix)}</span>` : '';
-                    return html;
-                }
+            if (upper === 'SUI' || upper.endsWith('SUI')) {
+                const suiIndex = upper.indexOf('SUI');
+                const prefix = original.substring(0, suiIndex).toLowerCase();
+                let html = '';
+                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
+                html += `<span class="token-sui">SUI</span>`;
+                return html;
             }
-
-            if (lower === 'usdc' || lower === 'usdce') return `<span class="token-usdc">${upper}</span>`;
-            if (lower === 'usdt') return `<span class="token-usdt">${upper}</span>`;
-            if (lower === 'dai') return `<span class="token-dai">${upper}</span>`;
-            if (CONFIG.STABLE_TOKENS.has(lower)) return `<span class="token-stable">${upper}</span>`;
-
+            const btcIndex = upper.indexOf('BTC');
+            if (btcIndex !== -1 && !CONFIG.EXCLUDED.has(lower)) {
+                const prefix = original.substring(0, btcIndex).toLowerCase();
+                const suffix = original.substring(btcIndex + 3).toLowerCase();
+                let html = '';
+                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
+                html += `<span class="token-btc">BTC</span>`;
+                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
+                return html;
+            }
+            const ethIndex = upper.indexOf('ETH');
+            if (ethIndex !== -1 && !CONFIG.EXCLUDED.has(lower)) {
+                const prefix = original.substring(0, ethIndex).toLowerCase();
+                const suffix = original.substring(ethIndex + 3).toLowerCase();
+                let html = '';
+                if (prefix) html += `<span class="token-prefix">${escapeHtml(prefix)}</span>`;
+                html += `<span class="token-eth">ETH</span>`;
+                if (suffix) html += `<span class="token-prefix">${escapeHtml(suffix)}</span>`;
+                return html;
+            }
+            const normalized = lower.replace(/\./g, '');
+            if (normalized === 'usdc' || normalized === 'usdce') {
+                return `<span class="token-usdc">${escapeHtml(upper)}</span>`;
+            }
+            if (normalized === 'usdt' || normalized === 'usdtce' || normalized === 'usdte') {
+                return `<span class="token-usdt">${escapeHtml(upper)}</span>`;
+            }
+            if (normalized === 'dai' || normalized === 'daie') {
+                return `<span class="token-dai">${escapeHtml(upper)}</span>`;
+            }
+            if (ASSET_MAP[normalized] === 'STABLE') {
+                return `<span class="token-stable">${escapeHtml(upper)}</span>`;
+            }
             return escapeHtml(upper);
         }
 
-        function formatPoolName(name) {
+        function colorizePoolName(name) {
             if (!name) return '';
-            return name.split(/(\s*[\/\-]\s*)/).map(part => {
+            const parts = name.split(/(\s*[\/\-]\s*)/);
+            return parts.map(part => {
+                const trimmed = part.trim();
                 if (/^^[\/\-\s]+$/.test(part)) return escapeHtml(part);
-                if (/^^\d+\.?\d*%?$/.test(part.trim())) return `<span style="opacity:0.6">${escapeHtml(part)}</span>`;
-                return formatToken(part.trim());
+                if (/^^\d+\.?\d*%?$/.test(trimmed)) {
+                    return `<span style="opacity:0.6">${escapeHtml(trimmed)}</span>`;
+                }
+                return formatTokenSymbol(trimmed);
             }).join('');
         }
 
         // ============================================
-        // API CLIENT
+        // BASE DATA SOURCE CLASS
         // ============================================
-        async function apiCall(endpoint, params = {}) {
-            const elapsed = Date.now() - state.lastApiCall;
-            if (elapsed < CONFIG.RATE_LIMIT_MS) {
-                await sleep(CONFIG.RATE_LIMIT_MS - elapsed);
+        class DataSource {
+            constructor(name, network) {
+                this.name = name;
+                this.network = network;
+                this.rateLimitMs = CONFIG.RATE_LIMITS.DEFAULT;
             }
-            state.lastApiCall = Date.now();
 
-            const url = new URL(CONFIG.API_BASE + endpoint);
-            Object.entries(params).forEach(([k, v]) => {
-                if (v != null) url.searchParams.set(k, String(v));
-            });
-
-            for (let i = 1; i <= CONFIG.MAX_RETRIES; i++) {
-                try {
-                    const ctrl = new AbortController();
-                    const timeout = setTimeout(() => ctrl.abort(), CONFIG.TIMEOUT_MS);
-                    const res = await fetch(url.toString(), {
-                        signal: ctrl.signal,
-                        headers: { Accept: 'application/json' }
-                    });
-                    clearTimeout(timeout);
-
-                    if (res.status === 429) {
-                        console.warn('Rate limited, waiting...');
-                        await sleep(10000);
-                        continue;
-                    }
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    return await res.json();
-                } catch (err) {
-                    console.warn(`API error (${i}/${CONFIG.MAX_RETRIES}):`, err.message);
-                    if (i < CONFIG.MAX_RETRIES) await sleep(2000 * i);
+            async rateLimit() {
+                const key = this.name;
+                const now = Date.now();
+                const lastCall = state.lastApiCalls[key] || 0;
+                const elapsed = now - lastCall;
+                if (elapsed < this.rateLimitMs) {
+                    await sleep(this.rateLimitMs - elapsed);
                 }
-            }
-            return null;
-        }
-
-        async function fetchPools(network, page = 1) {
-            return await apiCall(`/networks/${network}/pools`, {
-                page,
-                include: 'dex,base_token,quote_token'
-            });
-        }
-
-        async function searchPools(query, network) {
-            const res = await apiCall('/search/pools', { query, network });
-            return res?.data || [];
-        }
-
-        async function fetchOHLCV(network, address, days) {
-            const res = await apiCall(`/networks/${network}/pools/${address}/ohlcv/day`, {
-                aggregate: 1,
-                limit: Math.min(days, 365),
-                currency: 'usd'
-            });
-            if (!res) return null;
-            const list = res.data?.attributes?.ohlcv_list || [];
-            return list.reduce((sum, c) => sum + (parseFloat(c?.[5]) || 0), 0) || null;
-        }
-
-        // ============================================
-        // POOL PROCESSING
-        // ============================================
-        function getTokenClass(sym) {
-            const n = normalize(sym);
-            if (CONFIG.EXCLUDED.has(n)) return null;
-            if (CONFIG.BTC_TOKENS.has(n) || n.includes('btc')) return 'BTC';
-            if (CONFIG.ETH_TOKENS.has(n) || n.includes('eth')) return 'ETH';
-            if (CONFIG.STABLE_TOKENS.has(n)) return 'STABLE';
-            return null;
-        }
-
-        function getBtcPairType(baseClass, quoteClass) {
-            if (baseClass === 'BTC' && quoteClass === 'BTC') return 'wrapped';
-            if (baseClass === 'BTC' && quoteClass === 'STABLE') return 'stable';
-            if (baseClass === 'STABLE' && quoteClass === 'BTC') return 'stable';
-            if (baseClass === 'BTC' && quoteClass === 'ETH') return 'eth';
-            if (baseClass === 'ETH' && quoteClass === 'BTC') return 'eth';
-            return null;
-        }
-
-        function extractFee(name) {
-            if (!name) return null;
-            const pct = name.match(/(\d+\.?\d*)\s*%/);
-            if (pct) {
-                const f = parseFloat(pct[1]);
-                if (f > 0 && f < 10) return f;
-            }
-            const bps = name.match(/(\d+)\s*bps/i);
-            if (bps) return parseFloat(bps[1]) / 100;
-            return null;
-        }
-
-        function processPool(data, included = [], network) {
-            if (!data?.attributes) return null;
-            const attr = data.attributes;
-            const address = attr.address;
-            if (!address) return null;
-
-            // Get token info
-            const baseRef = data.relationships?.base_token?.data;
-            const quoteRef = data.relationships?.quote_token?.data;
-            const dexRef = data.relationships?.dex?.data;
-
-            let baseSym = null, quoteSym = null, protocol = 'Unknown';
-
-            if (included.length > 0) {
-                const baseToken = included.find(i => i.type === 'token' && i.id === baseRef?.id);
-                const quoteToken = included.find(i => i.type === 'token' && i.id === quoteRef?.id);
-                const dex = included.find(i => i.type === 'dex' && i.id === dexRef?.id);
-                baseSym = baseToken?.attributes?.symbol;
-                quoteSym = quoteToken?.attributes?.symbol;
-                protocol = dex?.attributes?.name || dexRef?.id || 'Unknown';
+                state.lastApiCalls[key] = Date.now();
+                state.apiCalls++;
             }
 
-            // Fallback: parse from name
-            if (!baseSym || !quoteSym) {
-                const parts = (attr.name || '').split(/[\s\/\-]+/).filter(p => p && !/^^\d/.test(p));
-                baseSym = baseSym || parts[0];
-                quoteSym = quoteSym || parts[1];
-            }
+            async fetchWithRetry(url, options = {}, retries = CONFIG.MAX_RETRIES) {
+                await this.rateLimit();
 
-            if (!baseSym || !quoteSym) return null;
+                for (let attempt = 1; attempt <= retries; attempt++) {
+                    try {
+                        const ctrl = new AbortController();
+                        const timeout = setTimeout(() => ctrl.abort(), CONFIG.TIMEOUT_MS);
 
-            // Check if it's a BTC pair
-            const baseClass = getTokenClass(baseSym);
-            const quoteClass = getTokenClass(quoteSym);
-            if (baseClass !== 'BTC' && quoteClass !== 'BTC') return null;
+                        const res = await fetch(url, {
+                            ...options,
+                            signal: ctrl.signal,
+                            headers: { Accept: 'application/json', ...options.headers }
+                        });
+                        clearTimeout(timeout);
 
-            const pairType = getBtcPairType(baseClass, quoteClass);
-            if (!pairType) return null;
+                        if (res.status === 429) {
+                            log(`[${this.name}] Rate limited, waiting 10s...`, 'warn');
+                            await sleep(10000);
+                            continue;
+                        }
 
-            const liquidity = parseFloat(attr.reserve_in_usd) || 0;
-            const volume24h = parseFloat(attr.volume_usd?.h24) || 0;
-
-            if (liquidity < CONFIG.MIN_LIQUIDITY || volume24h < CONFIG.MIN_VOLUME) return null;
-
-            const fee = extractFee(attr.name) || CONFIG.DEFAULT_FEE;
-            let poolName = `${baseSym} / ${quoteSym}`;
-            if (fee !== CONFIG.DEFAULT_FEE) poolName += ` ${fee}%`;
-
-            protocol = protocol.replace(/_/g, ' ').split(' ')
-                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-
-            return {
-                id: `${network}_${address.toLowerCase()}`,
-                name: poolName,
-                baseSym,
-                quoteSym,
-                pairType,
-                liquidity,
-                volume24h,
-                volumeData: { '24h': volume24h },
-                fee,
-                chain: CONFIG.NETWORK_NAMES[network] || network,
-                chainId: network,
-                protocol,
-                address,
-                poolUrl: `https://www.geckoterminal.com/${network}/pools/${address}`,
-                explorerUrl: CONFIG.EXPLORERS[network] ? CONFIG.EXPLORERS[network] + address : ''
-            };
-        }
-
-        // ============================================
-        // DATA LOADING
-        // ============================================
-        async function loadNetwork(network, pages, onProgress) {
-            const discovered = new Map();
-            let step = 0;
-            const totalSteps = pages + CONFIG.SEARCHES.length;
-
-            // Fetch pool pages
-            for (let page = 1; page <= pages; page++) {
-                const res = await fetchPools(network, page);
-                if (!res?.data?.length) break;
-
-                res.data.forEach(p => {
-                    const pool = processPool(p, res.included || [], network);
-                    if (pool && !discovered.has(pool.id) && !state.pools.has(pool.id)) {
-                        discovered.set(pool.id, pool);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return await res.json();
+                    } catch (err) {
+                        log(`[${this.name}] Error (${attempt}/${retries}): ${err.message}`, 'warn');
+                        if (attempt < retries) {
+                            await sleep(CONFIG.RETRY_DELAY_MS * attempt);
+                        }
                     }
-                });
-
-                step++;
-                onProgress?.((step / totalSteps) * 100);
+                }
+                return null;
             }
 
-            // Search queries
-            for (const query of CONFIG.SEARCHES) {
-                const pools = await searchPools(query, network);
-                pools.forEach(p => {
-                    const pool = processPool(p, [], network);
-                    if (pool && !discovered.has(pool.id) && !state.pools.has(pool.id)) {
-                        discovered.set(pool.id, pool);
+            async discoverPools(onProgress) { throw new Error('Not implemented'); }
+            async fetchHistoricalVolume(pool, days) { throw new Error('Not implemented'); }
+        }
+
+        // ============================================
+        // DEXSCREENER DATA SOURCE
+        // ============================================
+        class DexscreenerSource extends DataSource {
+            constructor() {
+                super('Dexscreener', 'global');
+                this.baseUrl = CONFIG.APIS.DEXSCREENER;
+                this.rateLimitMs = CONFIG.RATE_LIMITS.DEXSCREENER;
+            }
+
+            async discoverPools(onProgress) {
+                const discovered = new Map();
+                const allQueries = Object.values(CONFIG.SEARCHES).flat();
+                const uniqueQueries = [...new Set(allQueries)];
+                
+                let step = 0;
+                const totalSteps = uniqueQueries.length;
+
+                log(`[Dexscreener] Starting global discovery for ${totalSteps} queries...`, 'dexscreener');
+
+                for (const query of uniqueQueries) {
+                    const res = await this.fetchWithRetry(
+                        `${this.baseUrl}/search?q=${encodeURIComponent(query)}`
+                    );
+
+                    if (res && res.pairs) {
+                        res.pairs.forEach(pair => {
+                            const internalChainId = CONFIG.CHAIN_ID_MAP[pair.chainId];
+                            if (!internalChainId) return;
+                            
+                            const liquidity = pair.liquidity?.usd || 0;
+                            const volume24h = pair.volume?.h24 || 0;
+
+                            if (liquidity >= CONFIG.MIN_LIQUIDITY && volume24h >= CONFIG.MIN_VOLUME_24H) {
+                                const norm = this.normalizePool(pair, internalChainId);
+                                if (norm) {
+                                    const existing = discovered.get(norm.id);
+                                    if (!existing || existing.liquidity < norm.liquidity) {
+                                        discovered.set(norm.id, norm);
+                                    }
+                                }
+                            }
+                        });
                     }
-                });
 
-                step++;
-                onProgress?.((step / totalSteps) * 100);
+                    step++;
+                    if (onProgress) onProgress((step / totalSteps) * 100);
+                    await sleep(50); 
+                }
+
+                log(`[Dexscreener] Discovery complete. Found ${discovered.size} pools.`, 'dexscreener');
+                return discovered;
             }
 
-            state.loadedNetworks.add(network);
-            return discovered;
+            normalizePool(raw, internalChainId) {
+                let fee = CONFIG.DEFAULT_FEE; 
+                const labels = raw.info?.labels || [];
+                const feeLabel = labels.find(l => l.includes('%'));
+                if (feeLabel) {
+                    const match = feeLabel.match(/([\d\.]+)%/);
+                    if (match) fee = parseFloat(match[1]) / 100;
+                } else if (raw.dexId === 'uniswap' || raw.dexId === 'sushiswap') {
+                    fee = 0.003;
+                } else if (raw.dexId === 'pancakeswap') {
+                    fee = 0.0025;
+                }
+
+                let protocol = raw.dexId || 'DEX';
+                protocol = protocol.charAt(0).toUpperCase() + protocol.slice(1);
+
+                const explorerBase = CONFIG.EXPLORERS[internalChainId] || '#';
+                const explorerUrl = explorerBase + raw.pairAddress;
+
+                return {
+                    id: `${internalChainId}-${raw.pairAddress}`,
+                    chainId: internalChainId,
+                    address: raw.pairAddress,
+                    token0: { symbol: raw.baseToken.symbol, address: raw.baseToken.address },
+                    token1: { symbol: raw.quoteToken.symbol, address: raw.quoteToken.address },
+                    name: `${raw.baseToken.symbol} / ${raw.quoteToken.symbol}`,
+                    liquidity: raw.liquidity?.usd || 0,
+                    volume24h: raw.volume?.h24 || 0,
+                    volume: { h24: raw.volume?.h24 || 0, h6: raw.volume?.h6 || 0, h1: raw.volume?.h1 || 0 },
+                    fee: fee,
+                    protocol: protocol,
+                    url: raw.url,
+                    explorerUrl: explorerUrl,
+                    priceUsd: parseFloat(raw.priceUsd) || 0,
+                    source: 'dexscreener'
+                };
+            }
         }
 
-        async function loadNetworks(networks, pages) {
-            const all = new Map();
-            let done = 0;
-
-            for (const net of networks) {
-                if (state.loadedNetworks.has(net) && pages === CONFIG.QUICK_PAGES) continue;
-
-                setOverlay(true, `Loading ${CONFIG.NETWORK_NAMES[net] || net}... (${done + 1}/${networks.length})`);
-
-                const discovered = await loadNetwork(net, pages, pct => {
-                    setOverlay(true, `Loading ${CONFIG.NETWORK_NAMES[net] || net}: ${Math.round(pct)}%`);
-                });
-
-                discovered.forEach((p, id) => all.set(id, p));
-                done++;
+        // ============================================
+        // GECKOTERMINAL DATA SOURCE
+        // ============================================
+        class GeckoTerminalSource extends DataSource {
+            constructor(network) {
+                super('GeckoTerminal', network);
+                this.baseUrl = CONFIG.APIS.GECKOTERMINAL;
+                this.rateLimitMs = CONFIG.RATE_LIMITS.GECKOTERMINAL;
             }
 
-            return all;
+            async fetchHistoricalVolume(pool, days) {
+                if (CONFIG.NATIVE_API_NETWORKS.has(pool.chainId)) {
+                    return null;
+                }
+
+                const res = await this.fetchWithRetry(
+                    `${this.baseUrl}/networks/${pool.chainId}/pools/${pool.address}/ohlcv/day?aggregate=1&limit=${Math.min(days, 365)}&currency=usd`
+                );
+
+                if (!res) return null;
+                const list = res.data?.attributes?.ohlcv_list || [];
+                if (!list.length) return null;
+
+                const totalVol = list.reduce((acc, item) => acc + (item[5] || 0), 0);
+                return totalVol;
+            }
         }
 
-        async function loadInitialData() {
+        // ============================================
+        // DASHBOARD CONTROLLER
+        // ============================================
+        
+        async function loadDashboardData() {
             if (state.isLoading) return;
             state.isLoading = true;
-
-            document.getElementById('refresh-btn').disabled = true;
+            
             state.pools.clear();
+            state.poolHistory.clear();
             state.loadedNetworks.clear();
-            state.ohlcvCache = {};
-            state.isFullLoad = false;
-            state.timeframe = '24h';
-            state.selectedNetworks = [...CONFIG.INITIAL_NETWORKS];
 
-            setOverlay(true, 'Loading BTC pools...');
-            updateStatus('Loading...', true);
+            updateHeaderStatus('Discovering pools via Dexscreener...', 'info', true);
+            updateProgress(5);
 
             try {
-                const discovered = await loadNetworks(CONFIG.INITIAL_NETWORKS, CONFIG.QUICK_PAGES);
-                discovered.forEach((p, id) => state.pools.set(id, p));
+                const ds = new DexscreenerSource();
+                const discovered = await ds.discoverPools((pct) => {
+                    updateProgress(5 + (pct * 0.5));
+                });
 
-                renderTable();
-                updateStatus();
-                updateLoadStatus();
-                updateNetworkBadge();
-                document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+                discovered.forEach(pool => state.pools.set(pool.id, pool));
+                updateProgress(60);
+
+                const chains = new Set();
+                state.pools.forEach(p => chains.add(p.chainId));
+                chains.forEach(c => state.loadedNetworks.add(c));
+
+                log(`Loaded ${state.pools.size} pools from ${state.loadedNetworks.size} networks`, 'success');
+                updateHeaderStatus('Fetching historical data for EVM networks...', 'info', true);
+
+                renderDashboard();
+                updateProgress(100);
+                
+                await prefetchHistory();
+
+                updateHeaderStatus('Data Loaded', 'success', false);
             } catch (err) {
-                console.error('Load error:', err);
-                updateStatus('Error loading data');
+                console.error(err);
+                log(`Critical Error: ${err.message}`, 'error');
+                updateHeaderStatus('Error loading data', 'error', false);
             } finally {
                 state.isLoading = false;
-                document.getElementById('refresh-btn').disabled = false;
-                setOverlay(false);
+                document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
             }
         }
 
-        async function loadFullData() {
-            if (state.isLoading || state.isFullLoad) return;
-            state.isLoading = true;
+        async function prefetchHistory() {
+            const gt = new GeckoTerminalSource();
+            let count = 0;
+            const limit = 50;
 
-            const btn = document.getElementById('load-full-btn');
-            if (btn) btn.disabled = true;
+            for (const sectionId of Object.keys(state.sections)) {
+                const section = state.sections[sectionId];
+                const sectionPools = getFilteredPools(sectionId)
+                    .sort((a, b) => (b.volume24h / b.liquidity) - (a.volume24h / a.liquidity))
+                    .slice(0, 5); 
 
-            setOverlay(true, 'Loading all BTC pools...');
-            updateStatus('Loading full data...', true);
-
-            try {
-                // Clear and reload with full pages
-                const networks = [...state.selectedNetworks];
-                state.loadedNetworks.clear();
-
-                const discovered = await loadNetworks(networks, CONFIG.FULL_PAGES);
-                discovered.forEach((p, id) => state.pools.set(id, p));
-
-                state.isFullLoad = true;
-                renderTable();
-                updateStatus();
-                updateLoadStatus();
-            } catch (err) {
-                console.error('Full load error:', err);
-            } finally {
-                state.isLoading = false;
-                setOverlay(false);
+                for (const pool of sectionPools) {
+                    if (count >= limit) break;
+                    if (CONFIG.EVM_NETWORKS.has(pool.chainId) && !state.poolHistory.has(pool.id)) {
+                        const vol = await gt.fetchHistoricalVolume(pool, 7);
+                        if (vol) {
+                            if (!state.poolHistory.has(pool.id)) state.poolHistory.set(pool.id, {});
+                            state.poolHistory.get(pool.id)['7d'] = vol;
+                        }
+                        count++;
+                        await sleep(200);
+                    }
+                }
             }
+            log(`Prefetched history for ${count} pools`, 'info');
         }
 
-        // ============================================
-        // OHLCV FETCHING
-        // ============================================
-        async function fetchTimeframeData(timeframe) {
-            if (timeframe === '24h') return;
+        function getFilteredPools(sectionId) {
+            const section = state.sections[sectionId];
+            const searchKeys = CONFIG.SEARCHES[sectionId] || [];
+            const validPools = [];
+            
+            state.pools.forEach(pool => {
+                if (!section.networks.includes(pool.chainId)) return;
 
-            const days = CONFIG.TIMEFRAMES[timeframe].days;
-            const pools = getFilteredPools();
-            const toFetch = pools.filter(p => {
-                const key = `${p.id}_${timeframe}`;
-                return state.ohlcvCache[key] === undefined;
-            });
+                const name = pool.name.toLowerCase().replace(/[\s\/\-]/g, '');
+                
+                const matchesSection = searchKeys.some(query => {
+                    const parts = query.toLowerCase().split(' ');
+                    return parts.every(part => name.includes(part));
+                });
 
-            if (toFetch.length === 0) return;
-
-            let done = 0;
-            for (const pool of toFetch) {
-                setOverlay(true, `Fetching ${days}d volume: ${done + 1}/${toFetch.length}`);
-
-                const vol = await fetchOHLCV(pool.chainId, pool.address, days);
-                const key = `${pool.id}_${timeframe}`;
-                state.ohlcvCache[key] = vol;
-
-                const cached = state.pools.get(pool.id);
-                if (cached) cached.volumeData[timeframe] = vol;
-
-                done++;
-            }
-        }
-
-        // ============================================
-        // FILTERING & METRICS
-        // ============================================
-        function getFilteredPools() {
-            const pools = [];
-            state.pools.forEach(p => {
-                if (!state.selectedNetworks.includes(p.chainId)) return;
-                pools.push({ ...p });
-            });
-            return pools;
-        }
-
-        function calculateMetrics(pool, timeframe) {
-            const days = CONFIG.TIMEFRAMES[timeframe].days;
-            const vol = pool.volumeData[timeframe];
-
-            if (vol == null || vol <= 0) {
-                pool.displayVolume = null;
-                pool.utilization = null;
-                pool.hasData = false;
-            } else {
-                pool.displayVolume = vol;
-                pool.hasData = true;
-                pool.utilization = pool.liquidity > 0 ? (vol / days) / pool.liquidity : 0;
-            }
-
-            // APR always from 24h
-            const vol24 = pool.volumeData['24h'] || pool.volume24h || 0;
-            pool.apr = pool.liquidity > 0 && vol24 > 0
-                ? (vol24 * (pool.fee / 100) * 365 / pool.liquidity) * 100
-                : null;
-
-            return pool;
-        }
-
-        function sortPools(pools, field, dir) {
-            return pools.sort((a, b) => {
-                let av = a[field], bv = b[field];
-                if (typeof av === 'string') av = av.toLowerCase();
-                if (typeof bv === 'string') bv = bv.toLowerCase();
-                if (av == null) av = dir === 'asc' ? Infinity : -Infinity;
-                if (bv == null) bv = dir === 'asc' ? Infinity : -Infinity;
-                return dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
-            });
-        }
-
-        // ============================================
-        // RENDERING
-        // ============================================
-        function getUtilClass(u) {
-            if (u == null) return '';
-            const p = u * 100;
-            if (p >= 50) return 'utilization-excellent';
-            if (p >= 20) return 'utilization-high';
-            if (p >= 5) return 'utilization-moderate';
-            return 'utilization-low';
-        }
-
-        function getAprClass(apr) {
-            if (apr == null) return '';
-            if (apr >= 50) return 'apr-excellent';
-            if (apr >= 20) return 'apr-good';
-            if (apr >= 5) return 'apr-moderate';
-            return 'apr-low';
-        }
-
-        function getFeeClass(fee) {
-            if (fee <= 0.05) return 'fee-low';
-            if (fee <= 0.3) return 'fee-medium';
-            return 'fee-high';
-        }
-
-        function getTypeLabel(type) {
-            switch (type) {
-                case 'stable': return '<span class="type-badge stable">Stable</span>';
-                case 'eth': return '<span class="type-badge eth">ETH</span>';
-                case 'wrapped': return '<span class="type-badge wrapped">Wrapped</span>';
-                default: return '';
-            }
-        }
-
-        function renderRow(pool, tf) {
-            const liqPct = Math.min(100, Math.max(0,
-                (Math.log10(Math.max(pool.liquidity, CONFIG.MIN_LIQUIDITY)) - Math.log10(CONFIG.MIN_LIQUIDITY)) /
-                (Math.log10(500000000) - Math.log10(CONFIG.MIN_LIQUIDITY)) * 100
-            ));
-
-            const tfInd = tf !== '24h' ? `<span class="tf-indicator">(${tf})</span>` : '';
-            const volDisplay = pool.displayVolume != null ? formatUsd(pool.displayVolume) : 'N/A';
-            const utilDisplay = pool.utilization != null ? formatPercent(pool.utilization) : 'N/A';
-            const aprDisplay = pool.apr != null ? pool.apr.toFixed(1) + '%' : 'N/A';
-
-            return `
-                <tr>
-                    <td class="col-chain">${escapeHtml(pool.chain)}</td>
-                    <td class="col-protocol"><span class="protocol-badge">${escapeHtml(pool.protocol)}</span></td>
-                    <td class="col-type">${getTypeLabel(pool.pairType)}</td>
-                    <td class="col-pool">
-                        <div class="pool-cell">
-                            <a href="${escapeHtml(pool.poolUrl)}" target="_blank" class="pool-link">${formatPoolName(pool.name)}</a>
-                            ${pool.explorerUrl ? `<a href="${escapeHtml(pool.explorerUrl)}" target="_blank" class="explorer-link" title="View contract">📋</a>` : ''}
-                        </div>
-                    </td>
-                    <td class="col-fee"><span class="fee-badge ${getFeeClass(pool.fee)}">${pool.fee.toFixed(2)}%</span></td>
-                    <td class="col-liquidity liquidity-cell">
-                        <div class="liquidity-bar" style="width:${liqPct}%"></div>
-                        <span class="liquidity-value">${formatUsd(pool.liquidity)}</span>
-                    </td>
-                    <td class="col-volume">${volDisplay}${tfInd}</td>
-                    <td class="col-util utilization-value ${getUtilClass(pool.utilization)}">${utilDisplay}</td>
-                    <td class="col-apr apr-value ${getAprClass(pool.apr)}">${aprDisplay}</td>
-                </tr>
-            `;
-        }
-
-        function renderTable() {
-            let pools = getFilteredPools().map(p => calculateMetrics(p, state.timeframe));
-
-            if (state.timeframe !== '24h') {
-                pools = pools.filter(p => p.hasData);
-            }
-
-            const sorted = sortPools(pools, state.sortField, state.sortDir);
-
-            const tbody = document.getElementById('pool-tbody');
-            const noData = document.getElementById('no-data');
-            const count = document.getElementById('pool-count');
-
-            count.textContent = `${sorted.length} pools`;
-
-            if (sorted.length === 0) {
-                tbody.innerHTML = '';
-                noData.classList.remove('hidden');
-            } else {
-                tbody.innerHTML = sorted.map(p => renderRow(p, state.timeframe)).join('');
-                noData.classList.add('hidden');
-            }
-
-            // Update sort indicators
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.classList.remove('sort-asc', 'sort-desc');
-                if (th.dataset.sort === state.sortField) {
-                    th.classList.add(`sort-${state.sortDir}`);
+                if (matchesSection) {
+                    validPools.push(pool);
                 }
             });
+
+            return validPools;
+        }
+
+        function calculatePoolMetrics(pool, timeframe) {
+            let volume = pool.volume24h;
+            let timeframeNote = '';
+
+            if (timeframe !== '24h') {
+                if (CONFIG.NATIVE_API_NETWORKS.has(pool.chainId)) {
+                    volume = pool.volume24h;
+                    timeframeNote = '(24h rate)';
+                } else {
+                    const history = state.poolHistory.get(pool.id);
+                    if (history && history[timeframe]) {
+                        volume = history[timeframe];
+                    } else {
+                        volume = pool.volume24h; 
+                    }
+                }
+            }
+
+            const util = pool.liquidity > 0 ? volume / pool.liquidity : 0;
+            const days = CONFIG.TIMEFRAMES[timeframe].days;
+            const annualVol = volume * (365 / days);
+            const apr = pool.liquidity > 0 ? (annualVol * pool.fee) / pool.liquidity : 0;
+
+            return { volume, util, apr, timeframeNote };
+        }
+
+        function renderDashboard() {
+            const grid = document.getElementById('dashboard-grid');
+            const stableWrapper = document.getElementById('stablecoin-section-wrapper');
+            grid.innerHTML = '';
+            stableWrapper.innerHTML = '';
+
+            CONFIG.SECTIONS.forEach(sectionConfig => {
+                const section = state.sections[sectionConfig.id];
+                const sectionEl = document.createElement('div');
+                sectionEl.className = `pair-section ${sectionConfig.grid ? '' : 'full-width'}`;
+                sectionEl.id = `section-${sectionConfig.id}`;
+
+                const headerHtml = `
+                    <div class="section-header">
+                        <div class="section-title">
+                            ${sectionConfig.title}
+                            <span class="pool-count" id="count-${sectionConfig.id}">0</span>
+                        </div>
+                        <div class="section-controls">
+                            <div class="network-selector">
+                                <button class="network-btn" onclick="toggleDropdown('${sectionConfig.id}')">
+                                    <span class="network-badge" id="net-count-${sectionConfig.id}">${section.networks.length}</span> Networks
+                                    <span class="network-arrow">▼</span>
+                                </button>
+                                <div class="network-dropdown" id="dropdown-${sectionConfig.id}">
+                                    <div class="dropdown-header">
+                                        <span>Select Networks</span>
+                                        <button onclick="resetNetworks('${sectionConfig.id}')">Reset</button>
+                                    </div>
+                                    <div class="dropdown-content" id="dropdown-content-${sectionConfig.id}">
+                                    </div>
+                                    <div class="dropdown-footer">
+                                        <span class="dropdown-footer-info">
+                                            Showing <span class="to-load" id="showing-count-${sectionConfig.id}">${section.networks.length}</span> networks
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeframe-toggle">
+                                ${Object.keys(CONFIG.TIMEFRAMES).map(tf => `
+                                    <button class="tf-btn ${section.timeframe === tf ? 'active' : ''}" 
+                                        onclick="setTimeframe('${sectionConfig.id}', '${tf}')"
+                                        id="tf-btn-${sectionConfig.id}-${tf}">
+                                        ${tf}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const tableHtml = `
+                    <div class="section-content">
+                        <div class="table-container">
+                            <table class="pool-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-chain">Chain</th>
+                                        <th class="col-protocol">Protocol</th>
+                                        <th class="col-pool">Pair</th>
+                                        <th class="col-fee">Fee</th>
+                                        <th class="col-liquidity" onclick="sortSection('${sectionConfig.id}', 'liquidity')">Liq</th>
+                                        <th class="col-volume" onclick="sortSection('${sectionConfig.id}', 'volume')">Vol (${CONFIG.TIMEFRAMES[section.timeframe].label})</th>
+                                        <th class="col-util" onclick="sortSection('${sectionConfig.id}', 'utilization')">Util</th>
+                                        <th class="col-apr" onclick="sortSection('${sectionConfig.id}', 'apr')">APR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-${sectionConfig.id}">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                sectionEl.innerHTML = headerHtml + tableHtml;
+
+                if (sectionConfig.grid) {
+                    grid.appendChild(sectionEl);
+                } else {
+                    stableWrapper.appendChild(sectionEl);
+                }
+
+                renderNetworkDropdown(sectionConfig.id);
+                renderSectionTable(sectionConfig.id);
+            });
+        }
+
+        function renderSectionTable(sectionId) {
+            const tbody = document.getElementById(`tbody-${sectionId}`);
+            const countEl = document.getElementById(`count-${sectionId}`);
+            const section = state.sections[sectionId];
+            
+            let pools = getFilteredPools(sectionId);
+
+            pools.sort((a, b) => {
+                const ma = calculatePoolMetrics(a, section.timeframe);
+                const mb = calculatePoolMetrics(b, section.timeframe);
+                
+                const valA = section.sortField === 'liquidity' ? a.liquidity :
+                              section.sortField === 'volume' ? ma.volume :
+                              section.sortField === 'utilization' ? ma.util : ma.apr;
+                
+                const valB = section.sortField === 'liquidity' ? b.liquidity :
+                              section.sortField === 'volume' ? mb.volume :
+                              section.sortField === 'utilization' ? mb.util : mb.apr;
+
+                return section.sortDir === 'desc' ? valB - valA : valA - valB;
+            });
+
+            pools = pools.slice(0, CONFIG.POOLS_PER_PAGE);
+
+            if (countEl) countEl.textContent = pools.length;
+            tbody.innerHTML = pools.map(pool => {
+                const metrics = calculatePoolMetrics(pool, section.timeframe);
+                
+                const aprClass = metrics.apr > 0.5 ? 'apr-excellent' : metrics.apr > 0.2 ? 'apr-good' : metrics.apr > 0.05 ? 'apr-moderate' : 'apr-low';
+                const utilClass = metrics.util > 0.5 ? 'utilization-excellent' : metrics.util > 0.2 ? 'utilization-high' : metrics.util > 0.05 ? 'utilization-moderate' : 'utilization-low';
+                
+                const feePct = (pool.fee * 100).toFixed(2) + '%';
+                const feeClass = pool.fee < 0.001 ? 'fee-low' : pool.fee < 0.005 ? 'fee-medium' : 'fee-high';
+
+                // Protocol Badge Dynamic Styling
+                const pStyle = getProtocolBadgeStyle(pool.protocol);
+                
+                return `
+                    <tr>
+                        <td>${escapeHtml(CONFIG.NETWORK_NAMES[pool.chainId] || pool.chainId)}</td>
+                        <td><span class="protocol-badge" style="color:${pStyle.color}; background-color:${pStyle.backgroundColor}">${escapeHtml(pool.protocol)}</span></td>
+                        <td>
+                            <div class="pool-cell">
+                                <a href="${pool.url}" target="_blank" class="pool-link" title="${escapeHtml(pool.name)}">
+                                    ${colorizePoolName(pool.name)}
+                                </a>
+                                <a href="${pool.explorerUrl}" target="_blank" class="explorer-link" title="Explorer">↗</a>
+                            </div>
+                        </td>
+                        <td><span class="fee-badge ${feeClass}">${feePct}</span></td>
+                        <td>${formatUsd(pool.liquidity)}</td>
+                        <td>${formatUsd(metrics.volume)} <span class="tf-indicator">${metrics.timeframeNote}</span></td>
+                        <td class="utilization-value ${utilClass}">${formatUtilization(metrics.util)}</td>
+                        <td class="apr-value ${aprClass}">${(metrics.apr * 100).toFixed(1)}%</td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (pools.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="no-data">No pools found for this selection.</td></tr>`;
+            }
         }
 
         // ============================================
-        // NETWORK SELECTOR
+        // UI INTERACTION HANDLERS
         // ============================================
-        function buildDropdown() {
-            let html = `
-                <div class="dropdown-header">
-                    <span>Select Networks</span>
-                    <button id="select-all-loaded">Select All Loaded</button>
-                </div>
-                <div class="dropdown-content">
-            `;
+        
+        window.toggleDropdown = (sectionId) => {
+            const dd = document.getElementById(`dropdown-${sectionId}`);
+            const btn = document.querySelector(`#section-${sectionId} .network-btn`);
+            dd.classList.toggle('open');
+            btn.classList.toggle('open');
+        };
 
-            Object.entries(CONFIG.NETWORKS).forEach(([group, nets]) => {
-                html += `<div class="network-group-label">${group}</div>`;
+        window.renderNetworkDropdown = (sectionId) => {
+            const content = document.getElementById(`dropdown-content-${sectionId}`);
+            const section = state.sections[sectionId];
+            
+            let html = '';
+            for (const [group, nets] of Object.entries(CONFIG.NETWORK_GROUPS)) {
+                html += `<div class="network-group-label">${escapeHtml(group)}</div>`;
                 nets.forEach(net => {
-                    const loaded = state.loadedNetworks.has(net.id);
-                    const selected = state.pendingNetworks.includes(net.id);
+                    const isSelected = section.networks.includes(net.id);
+                    const isLoaded = state.loadedNetworks.has(net.id);
                     html += `
-                        <div class="network-item ${selected ? 'selected' : ''} ${!loaded ? 'not-loaded' : ''}" data-net="${net.id}">
-                            <div class="network-checkbox">${selected ? '✓' : ''}</div>
-                            <span class="network-name">${net.name}</span>
-                            <span class="network-tag ${loaded ? 'loaded' : 'not-loaded'}">${loaded ? 'Loaded' : 'Not loaded'}</span>
+                        <div class="network-item ${isSelected ? 'selected' : ''} ${!isLoaded ? 'not-loaded' : ''}" 
+                             onclick="toggleNetwork('${sectionId}', '${net.id}')">
+                            <div class="network-checkbox">${isSelected ? '✓' : ''}</div>
+                            <div class="network-name">${escapeHtml(net.name)}</div>
+                            ${net.fast ? '<span class="fast-tag">Fast</span>' : ''}
                         </div>
                     `;
                 });
-            });
+            }
+            content.innerHTML = html;
+            document.getElementById(`showing-count-${sectionId}`).textContent = section.networks.length;
+            document.getElementById(`net-count-${sectionId}`).textContent = section.networks.length;
+        };
 
-            const toLoad = state.pendingNetworks.filter(n => !state.loadedNetworks.has(n)).length;
-
-            html += `
-                </div>
-                <div class="dropdown-footer">
-                    <div class="dropdown-footer-info">${toLoad > 0 ? `<span class="to-load">${toLoad} to load</span>` : ''}</div>
-                    <div class="dropdown-footer-buttons">
-                        <button class="btn btn-sm" id="dropdown-cancel">Cancel</button>
-                        <button class="btn btn-sm btn-primary" id="dropdown-apply">Apply</button>
-                    </div>
-                </div>
-            `;
-
-            return html;
-        }
-
-        function updateNetworkBadge() {
-            document.getElementById('network-badge').textContent = state.selectedNetworks.length;
-        }
-
-        function openDropdown() {
-            const dropdown = document.getElementById('network-dropdown');
-            const btn = document.getElementById('network-btn');
-
-            state.pendingNetworks = [...state.selectedNetworks];
-            dropdown.innerHTML = buildDropdown();
-            dropdown.classList.add('open');
-            btn.classList.add('open');
-
-            // Position
-            const rect = btn.getBoundingClientRect();
-            dropdown.style.top = (rect.bottom + 4) + 'px';
-            dropdown.style.right = Math.max(10, window.innerWidth - rect.right) + 'px';
-
-            // Attach listeners
-            dropdown.querySelectorAll('.network-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const netId = item.dataset.net;
-                    const idx = state.pendingNetworks.indexOf(netId);
-                    if (idx > -1) {
-                        state.pendingNetworks.splice(idx, 1);
-                    } else {
-                        state.pendingNetworks.push(netId);
-                    }
-                    dropdown.innerHTML = buildDropdown();
-                    attachDropdownListeners();
-                });
-            });
-
-            attachDropdownListeners();
-        }
-
-        function attachDropdownListeners() {
-            const dropdown = document.getElementById('network-dropdown');
-
-            dropdown.querySelectorAll('.network-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const netId = item.dataset.net;
-                    const idx = state.pendingNetworks.indexOf(netId);
-                    if (idx > -1) {
-                        state.pendingNetworks.splice(idx, 1);
-                    } else {
-                        state.pendingNetworks.push(netId);
-                    }
-                    dropdown.innerHTML = buildDropdown();
-                    attachDropdownListeners();
-                });
-            });
-
-            document.getElementById('select-all-loaded')?.addEventListener('click', () => {
-                state.pendingNetworks = [...state.loadedNetworks];
-                dropdown.innerHTML = buildDropdown();
-                attachDropdownListeners();
-            });
-
-            document.getElementById('dropdown-cancel')?.addEventListener('click', closeDropdown);
-
-            document.getElementById('dropdown-apply')?.addEventListener('click', async () => {
-                const toLoad = state.pendingNetworks.filter(n => !state.loadedNetworks.has(n));
-                closeDropdown();
-
-                if (toLoad.length > 0) {
-                    state.isLoading = true;
-                    setOverlay(true, 'Loading new networks...');
-                    updateStatus('Loading...', true);
-
-                    const discovered = await loadNetworks(toLoad, state.isFullLoad ? CONFIG.FULL_PAGES : CONFIG.QUICK_PAGES);
-                    discovered.forEach((p, id) => state.pools.set(id, p));
-
-                    state.isLoading = false;
-                    setOverlay(false);
+        window.toggleNetwork = (sectionId, netId) => {
+            const section = state.sections[sectionId];
+            const idx = section.networks.indexOf(netId);
+            if (idx > -1) {
+                if (section.networks.length > 1) {
+                    section.networks.splice(idx, 1);
                 }
+            } else {
+                section.networks.push(netId);
+            }
+            renderNetworkDropdown(sectionId);
+            renderSectionTable(sectionId);
+            checkTimeframeAvailability(sectionId);
+        };
 
-                state.selectedNetworks = state.pendingNetworks.filter(n => state.loadedNetworks.has(n));
-                renderTable();
-                updateStatus();
-                updateNetworkBadge();
-            });
-        }
+        window.resetNetworks = (sectionId) => {
+            state.sections[sectionId].networks = [...CONFIG.INITIAL_NETWORKS];
+            renderNetworkDropdown(sectionId);
+            renderSectionTable(sectionId);
+            checkTimeframeAvailability(sectionId);
+        };
 
-        function closeDropdown() {
-            document.getElementById('network-dropdown').classList.remove('open');
-            document.getElementById('network-btn').classList.remove('open');
-        }
+        window.setTimeframe = async (sectionId, tf) => {
+            const section = state.sections[sectionId];
+            if (section.timeframe === tf) return;
 
-        // ============================================
-        // EVENT HANDLERS
-        // ============================================
-        function initEventHandlers() {
-            // Refresh
-            document.getElementById('refresh-btn').addEventListener('click', loadInitialData);
+            section.timeframe = tf;
+            
+            document.querySelectorAll(`#section-${sectionId} .tf-btn`).forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tf-btn-${sectionId}-${tf}`).classList.add('active');
+            
+            const th = document.querySelector(`#section-${sectionId} .col-volume`);
+            if (th) th.textContent = `Vol (${CONFIG.TIMEFRAMES[tf].label})`;
 
-            // Network selector
-            document.getElementById('network-btn').addEventListener('click', e => {
-                e.stopPropagation();
-                const dropdown = document.getElementById('network-dropdown');
-                if (dropdown.classList.contains('open')) {
-                    closeDropdown();
-                } else {
-                    openDropdown();
+            renderSectionTable(sectionId);
+
+            if (tf !== '24h') {
+                const poolsToFetch = getFilteredPools(sectionId).slice(0, CONFIG.POOLS_PER_PAGE)
+                    .filter(p => CONFIG.EVM_NETWORKS.has(p.chainId) && !state.poolHistory.get(p.id)?.[tf]);
+                
+                if (poolsToFetch.length > 0) {
+                    log(`Fetching ${tf} history for ${poolsToFetch.length} pools...`, 'info');
+                    const gt = new GeckoTerminalSource();
+                    for (const pool of poolsToFetch) {
+                        const vol = await gt.fetchHistoricalVolume(pool, CONFIG.TIMEFRAMES[tf].days);
+                        if (vol) {
+                            if (!state.poolHistory.has(pool.id)) state.poolHistory.set(pool.id, {});
+                            state.poolHistory.get(pool.id)[tf] = vol;
+                        }
+                        await sleep(200);
+                    }
+                    renderSectionTable(sectionId);
+                }
+            }
+        };
+        
+        function checkTimeframeAvailability(sectionId) {
+            const section = state.sections[sectionId];
+            const isAllFast = section.networks.every(n => CONFIG.NATIVE_API_NETWORKS.has(n));
+            
+            const btns = {
+                '7d': document.getElementById(`tf-btn-${sectionId}-7d`),
+                '30d': document.getElementById(`tf-btn-${sectionId}-30d`),
+                '1y': document.getElementById(`tf-btn-${sectionId}-1y`)
+            };
+
+            Object.entries(btns).forEach(([tf, btn]) => {
+                if (btn) {
+                    if (isAllFast) {
+                        btn.disabled = true;
+                        btn.title = "Historical data not available for Solana/Sui via Gecko in this mode";
+                    } else {
+                        btn.disabled = false;
+                        btn.title = "";
+                    }
                 }
             });
-
-            document.addEventListener('click', closeDropdown);
-            document.getElementById('network-dropdown').addEventListener('click', e => e.stopPropagation());
-
-            // Timeframe
-            document.querySelectorAll('.tf-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const tf = btn.dataset.tf;
-                    if (tf === state.timeframe) return;
-
-                    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.timeframe = tf;
-
-                    if (tf !== '24h') {
-                        setOverlay(true, `Fetching ${CONFIG.TIMEFRAMES[tf].days}d volume...`);
-                        await fetchTimeframeData(tf);
-                        setOverlay(false);
-                    }
-
-                    renderTable();
-                });
-            });
-
-            // Sorting
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.addEventListener('click', () => {
-                    const field = th.dataset.sort;
-                    if (state.sortField === field) {
-                        state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        state.sortField = field;
-                        state.sortDir = 'desc';
-                    }
-                    renderTable();
-                });
-            });
+            
+            if (isAllFast && section.timeframe !== '24h') {
+                setTimeframe(sectionId, '24h');
+            }
         }
 
+        window.sortSection = (sectionId, field) => {
+            const section = state.sections[sectionId];
+            if (section.sortField === field) {
+                section.sortDir = section.sortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                section.sortField = field;
+                section.sortDir = 'desc';
+            }
+            renderSectionTable(sectionId);
+        };
+
         // ============================================
-        // INIT
+        // INITIALIZATION
         // ============================================
         function init() {
-            initEventHandlers();
-            loadInitialData();
+            document.getElementById('refresh-btn').addEventListener('click', loadDashboardData);
+            document.getElementById('debug-toggle').addEventListener('click', () => {
+                document.getElementById('debug-section').classList.toggle('hidden');
+            });
+            document.getElementById('clear-debug').addEventListener('click', () => {
+                state.debugLogs = [];
+                renderDebugLog();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.network-selector')) {
+                    document.querySelectorAll('.network-dropdown').forEach(d => d.classList.remove('open'));
+                    document.querySelectorAll('.network-btn').forEach(b => b.classList.remove('open'));
+                }
+            });
+
+            loadDashboardData();
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
+        init();
+
     })();
     </script>
 </body>
